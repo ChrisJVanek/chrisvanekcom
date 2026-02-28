@@ -1,0 +1,32 @@
+import type { Metadata } from "next";
+import { Instrument_Sans, Source_Serif_4 } from "next/font/google";
+import "./globals.css";
+
+const display = Instrument_Sans({
+  subsets: ["latin"],
+  variable: "--font-display",
+});
+
+const body = Source_Serif_4({
+  subsets: ["latin"],
+  variable: "--font-body",
+});
+
+export const metadata: Metadata = {
+  title: "Chris Vanek",
+  description: "Personal site — projects, blog, and more.",
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <html lang="en" className={`${display.variable} ${body.variable}`}>
+      <body className="font-body antialiased min-h-screen">
+        {children}
+      </body>
+    </html>
+  );
+}

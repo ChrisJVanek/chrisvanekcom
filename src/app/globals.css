@@ -1,0 +1,31 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-ink: #0f0f0f;
+  --color-paper: #f5f2ec;
+  --color-accent: #c45c26;
+  --color-mute: #6b6560;
+  --font-display: "Instrument Sans", system-ui, sans-serif;
+  --font-body: "Source Serif 4", Georgia, serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-ink: #f5f2ec;
+    --color-paper: #0f0f0f;
+    --color-mute: #9a948d;
+  }
+}
+
+body {
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
