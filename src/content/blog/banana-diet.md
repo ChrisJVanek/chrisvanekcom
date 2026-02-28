@@ -1,7 +1,7 @@
 ---
 title: "The Banana Diet"
 date: "2025-02-28"
-excerpt: "The true story of how I ate nothing but bananas for 5 weeks, ended up bleeding in a work cubicle, and destroyed my tooth enamel with vitamin C tablets."
+excerpt: "The true story of how I ate nothing but bananas for 6 weeks, ended up bleeding in a work cubicle, and destroyed my tooth enamel with vitamin C tablets."
 ---
 
 This has been a long time coming.
@@ -76,20 +76,20 @@ And then someone walked in.
 
 This poor bloke pushes the cubicle door (which I'd apparently failed to lock properly in my haste), sees me hunched over, white as a sheet, blood visible, and absolutely loses it. "MATE, ARE YOU OKAY? DO I NEED TO CALL AN AMBULANCE?"
 
-I now had to explain, out loud, to a coworker I barely knew, that I was not in fact dying, but was simply suffering the consequences of eating nothing but unripe bananas for five weeks. The look on his face was something between horror and complete bewilderment. He didn't really know what to say. Neither did I. He slowly backed out. We never spoke of it again.
+I now had to explain, out loud, to a coworker I barely knew, that I was not in fact dying, but was simply suffering the consequences of eating nothing but unripe bananas for the better part of five weeks. The look on his face was something between horror and complete bewilderment. He didn't really know what to say. Neither did I. He slowly backed out. We never spoke of it again.
 
-## The Vitamin C Solution (That Created a New Problem)
+## Week 6: The Vitamin C Solution (That Created a New Problem)
 
 After the cubicle incident, I knew I needed to fix the constipation situation without abandoning the diet entirely (because I am, apparently, incapable of learning lessons). So I hit the internet again and discovered that high doses of vitamin C can loosen your stools. Perfect. Easy fix.
 
 I bought a huge bottle of vitamin C tablets and started popping them like candy. And it worked. Almost too well. I went from complete shutdown to the opposite extreme within about 48 hours. The balance between "cement" and "waterfall" turned out to be incredibly narrow, and I spent a good few days overshooting in both directions.
 
-But the real kicker came later. See, those chewable vitamin C tablets are basically pure ascorbic acid. And I was chewing five or six of them a day, sometimes more. What nobody tells you (or maybe they do and I just wasn't listening) is that ascorbic acid will absolutely destroy your tooth enamel. Within a couple of weeks my teeth were noticeably more sensitive. Hot drinks, cold drinks, even breathing in cold air made me wince. A trip to the dentist confirmed what I already suspected: I'd done real damage to my enamel. The kind that doesn't grow back.
+But the real kicker came at the end of that same week. See, those chewable vitamin C tablets are basically pure ascorbic acid. And I was chewing five or six of them a day, sometimes more. What nobody tells you (or maybe they do and I just wasn't listening) is that ascorbic acid will absolutely destroy your tooth enamel. By the end of week six my teeth were noticeably more sensitive. Hot drinks, cold drinks, even breathing in cold air made me wince. A trip to the dentist confirmed what I already suspected: I'd done real damage to my enamel. The kind that doesn't grow back.
 
-So to recap: I started this diet to look like a Vampire Diaries character, and I ended up bleeding in a work bathroom, traumatising a colleague, and permanently damaging my teeth. Peak performance.
+So to recap: I started this diet to look like a Vampire Diaries character, and I ended up bleeding in a work bathroom, traumatising a colleague, and permanently damaging my teeth. Six weeks. That's all it took.
 
 ## The Aftermath
 
-I stopped the banana diet shortly after the dentist visit. Five weeks in total. I did lose about 3kg, which I gained back within two weeks of eating normally again. My teeth remain sensitive to this day. The coworker from the bathroom still avoids eye contact. And I've never looked at a banana the same way since.
+I stopped the banana diet the day after the dentist visit. Six weeks in total. I did lose about 3kg, which I gained back within two weeks of eating normally again. My teeth remain sensitive to this day. The coworker from the bathroom still avoids eye contact. And I've never looked at a banana the same way since.
 
 If there's a lesson here, it's this: if a diet sounds too simple to be true, it probably is. And if you absolutely must try eating nothing but one food for weeks on end, at least make sure they're ripe.
