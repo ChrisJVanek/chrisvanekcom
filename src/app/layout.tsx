@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Instrument_Sans, Source_Serif_4 } from "next/font/google";
 import "./globals.css";
 
@@ -15,6 +15,11 @@ const body = Source_Serif_4({
 export const metadata: Metadata = {
   title: "Chris Vanek",
   description: "Personal site — projects, blog, and more.",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
 };
 
 export default function RootLayout({
