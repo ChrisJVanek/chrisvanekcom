@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { getBlogPosts } from "@/lib/blog";
 import { projects } from "@/data/projects";
 
@@ -40,6 +41,15 @@ export default function HomePage() {
                   rel="noopener noreferrer"
                   className="block"
                 >
+                  <div className="relative w-full aspect-[16/10] rounded-2xl overflow-hidden bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 mb-4 ring-0 transition-all duration-300 group-hover:ring-2 group-hover:ring-accent/30 group-hover:border-accent/40">
+                    <Image
+                      src={project.image}
+                      alt={`${project.title} screenshot`}
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 672px) 100vw, 672px"
+                    />
+                  </div>
                   <h3 className="font-display text-xl font-semibold text-ink group-hover:text-accent transition-colors">
                     {project.title}
                   </h3>
