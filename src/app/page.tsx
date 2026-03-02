@@ -14,6 +14,12 @@ export default function HomePage() {
         <p className="text-mute text-lg leading-relaxed max-w-md">
           I build things on the web — games, tools, and the occasional blog post.
         </p>
+        <Link
+          href="/health"
+          className="inline-block mt-4 text-sm font-medium text-accent hover:underline"
+        >
+          Health (weight & calories) →
+        </Link>
       </header>
 
       <section id="projects" className="mb-24 scroll-mt-16">
@@ -76,6 +82,15 @@ export default function HomePage() {
       <footer className="mt-24 pt-8 border-t border-black/10 dark:border-white/10">
         <p className="text-sm text-mute">
           © {new Date().getFullYear()} Chris Vanek
+          {" · "}
+          <a
+            href="https://x.com/chrisjvanek"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-accent hover:underline"
+          >
+            X
+          </a>
         </p>
       </footer>
     </main>
