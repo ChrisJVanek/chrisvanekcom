@@ -15,7 +15,7 @@ const body = Source_Serif_4({
 
 export const metadata: Metadata = {
   title: "Chris Vanek",
-  description: "Personal site — projects, blog, and more.",
+  description: "Personal site — projects, crypto, longevity, and vibe rat.",
 };
 
 export const viewport: Viewport = {

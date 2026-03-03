@@ -13,7 +13,7 @@ export default function HomePage() {
           Chris Vanek
         </h1>
         <p className="text-mute text-lg leading-relaxed max-w-md">
-          I build things on the web — games, tools, and the occasional blog post.
+          Projects, crypto, longevity, and vibe rat.
         </p>
       </header>
 
@@ -69,14 +69,25 @@ export default function HomePage() {
             <li key={post.slug}>
               <Link
                 href={`/blog/${post.slug}`}
-                className="group block"
+                className="group block rounded-xl border border-black/10 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.02] p-5 sm:p-6 hover:border-accent/30 hover:bg-black/[0.04] dark:hover:bg-white/[0.04] transition-all duration-200"
               >
-                <h3 className="font-display text-lg font-semibold text-ink group-hover:text-accent transition-colors">
+                <time
+                  className="font-display text-xs font-medium uppercase tracking-wider text-mute"
+                  dateTime={post.date}
+                >
+                  {post.date ? new Date(post.date + "T12:00:00").toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }) : ""}
+                </time>
+                <h3 className="font-display text-xl font-semibold text-ink mt-1.5 group-hover:text-accent transition-colors">
                   {post.title}
                 </h3>
-                <time className="text-sm text-mute" dateTime={post.date}>
-                  {post.date}
-                </time>
+                {post.excerpt && (
+                  <p className="text-mute mt-2 leading-relaxed line-clamp-2">
+                    {post.excerpt}
+                  </p>
+                )}
+                <span className="inline-block mt-3 text-sm font-medium text-accent group-hover:underline">
+                  Read more →
+                </span>
               </Link>
             </li>
           ))}
