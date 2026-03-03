@@ -54,6 +54,34 @@ export default function HealthPage() {
       <DexaSection />
       <BloodTestSection />
 
+      <section className="mb-12 rounded-2xl border border-black/10 dark:border-white/10 overflow-hidden bg-black/[0.02] dark:bg-white/[0.02]">
+        <div className="p-6 sm:p-8">
+          <h2 className="font-display text-sm font-medium uppercase tracking-widest text-mute mb-6">
+            Current protocols
+          </h2>
+          <div className="space-y-6">
+            <div>
+              <h3 className="font-display font-semibold text-ink mb-1">Hair loss — NOVAMANE</h3>
+              <p className="text-sm text-mute leading-relaxed">
+                Have begun a hair loss protocol called NOVAMANE, aiming to explore topical solutions for minoxidil as well.
+              </p>
+            </div>
+            <div>
+              <h3 className="font-display font-semibold text-ink mb-1">Cholesterol</h3>
+              <p className="text-sm text-mute leading-relaxed mb-2">
+                Currently taking:
+              </p>
+              <ul className="text-sm text-mute list-disc list-inside space-y-0.5">
+                <li>Citrus Bergamot</li>
+                <li>Red Yeast Rice 600mg</li>
+                <li>Triple Strength Fish Oil</li>
+                <li>Vitamin D</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {hasCronometer && (
         <>
           <section className="mb-12" id="daily-summary">
