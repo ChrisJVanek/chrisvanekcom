@@ -8,6 +8,7 @@ import { getHealthData, getDailySummary } from "@/lib/health";
 import { DailySummaryCard } from "@/components/DailySummaryCard";
 import { DexaSection } from "@/components/DexaSection";
 import { BloodTestSection } from "@/components/BloodTestSection";
+import { ExpandableFoodLog } from "@/components/ExpandableFoodLog";
 
 function servingsByDay(servings: CronometerServing[]): Map<string, CronometerServing[]> {
   const byDay = new Map<string, CronometerServing[]>();
@@ -17,54 +18,6 @@ function servingsByDay(servings: CronometerServing[]): Map<string, CronometerSer
     byDay.set(s.day, list);
   }
   return byDay;
-}
-
-function ServingsByDay({ servings }: { servings: CronometerServing[] }) {
-  const byDay = new Map<string, CronometerServing[]>();
-  for (const s of servings) {
-    const list = byDay.get(s.day) ?? [];
-    list.push(s);
-    byDay.set(s.day, list);
-  }
-  const days = Array.from(byDay.entries()).sort((a, b) => (b[0] > a[0] ? 1 : -1));
-
-  return (
-    <div className="space-y-8">
-      {days.map(([day, items]) => (
-        <section key={day} className="rounded-xl border border-black/10 dark:border-white/10 overflow-hidden bg-black/[0.02] dark:bg-white/[0.02]">
-          <header className="px-4 py-3 border-b border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5">
-            <time className="font-display text-sm font-medium text-ink">
-              {new Date(day + "T12:00:00").toLocaleDateString(undefined, {
-                weekday: "long",
-                month: "short",
-                day: "numeric",
-              })}
-            </time>
-          </header>
-          <ul className="divide-y divide-black/5 dark:divide-white/5">
-            {items.map((s, i) => (
-              <li key={`${day}-${i}-${s.foodName}-${s.time}`} className="px-4 py-3 flex flex-wrap items-baseline justify-between gap-2 sm:gap-4">
-                <div className="min-w-0 flex-1">
-                  <span className="font-medium text-ink">{s.foodName}</span>
-                  {s.amount && (
-                    <span className="text-mute text-sm ml-2">{s.amount}</span>
-                  )}
-                </div>
-                <div className="flex items-center gap-3 shrink-0">
-                  {s.time && (
-                    <span className="text-xs text-mute tabular-nums">{s.time}</span>
-                  )}
-                  <span className="font-display font-semibold text-ink tabular-nums min-w-[3rem] text-right">
-                    {s.energyKcal > 0 ? `${Math.round(s.energyKcal)} kcal` : "—"}
-                  </span>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </section>
-      ))}
-    </div>
-  );
 }
 
 export const metadata = {
@@ -104,29 +57,32 @@ export default function HealthPage() {
       {hasCronometer && (
         <>
           <section className="mb-12" id="daily-summary">
-            <h2 className="font-display text-sm font-medium uppercase tracking-widest text-mute mb-4">
-              Daily summary
-            </h2>
-            <p className="text-sm text-mute mb-4">Click a day&apos;s kcal to see the food log.</p>
-            <div className="grid gap-4 sm:grid-cols-2">
-              {cronometerDays.map((day) => (
-                <DailySummaryCard
-                  key={day.date}
-                  day={day}
-                  servings={servingsByDayMap.get(day.date) ?? []}
-                />
-              ))}
+            <p className="text-sm text-mute mb-6">
+              Daily summary is updated daily from exported logs. Click a day&apos;s kcal to open the food log in an overlay.
+            </p>
+            <div className="grid gap-8 lg:grid-cols-2 lg:gap-10">
+              <div>
+                <h2 className="font-display text-sm font-medium uppercase tracking-widest text-mute mb-4">
+                  Daily summary
+                </h2>
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
+                  {cronometerDays.map((day) => (
+                    <DailySummaryCard
+                      key={day.date}
+                      day={day}
+                      servings={servingsByDayMap.get(day.date) ?? []}
+                    />
+                  ))}
+                </div>
+              </div>
+              <div>
+                <h2 className="font-display text-sm font-medium uppercase tracking-widest text-mute mb-4">
+                  Food log
+                </h2>
+                <ExpandableFoodLog servings={cronometerServings} />
+              </div>
             </div>
           </section>
-
-          {cronometerServings.length > 0 && (
-            <section className="mb-12" id="food-log">
-              <h2 className="font-display text-sm font-medium uppercase tracking-widest text-mute mb-4">
-                Food log
-              </h2>
-              <ServingsByDay servings={cronometerServings} />
-            </section>
-          )}
         </>
       )}
 
