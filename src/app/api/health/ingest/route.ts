@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
-import type { HealthData, WeightEntry, CalorieEntry } from "@/lib/health";
+import type { HealthData, WeightEntry, CalorieEntry, ActivityEntry } from "@/lib/health";
 
 const dataPath = path.join(process.cwd(), "src", "data", "health.json");
 
@@ -14,17 +14,26 @@ function parseDateOnly(dateStr: string): string | null {
   return match ? match[0] : null;
 }
 
+const ACTIVITY_METRIC_NAMES = [
+  "apple_exercise_time",
+  "exercise_minutes",
+  "exercise_time",
+  "active_energy_burned",
+];
+
 function fromHealthAutoExport(body: { data?: { metrics?: HAEMetric[] } }): {
   weight: WeightEntry[];
   calories: CalorieEntry[];
+  activity: ActivityEntry[];
 } {
   const weight: WeightEntry[] = [];
   const caloriesByDate = new Map<string, number>();
+  const activityByDate = new Map<string, number>();
   const metrics = body.data?.metrics;
-  if (!Array.isArray(metrics)) return { weight, calories: [] };
+  if (!Array.isArray(metrics)) return { weight, calories: [], activity: [] };
 
   for (const m of metrics) {
-    const name = (m.name || "").toLowerCase();
+    const name = (m.name || "").toLowerCase().replace(/\s+/g, "_");
     const points = Array.isArray(m.data) ? m.data : [];
     for (const p of points) {
       const date = parseDateOnly(p.date || "");
@@ -35,27 +44,34 @@ function fromHealthAutoExport(body: { data?: { metrics?: HAEMetric[] } }): {
       } else if (name === "dietary_energy") {
         const prev = caloriesByDate.get(date) || 0;
         caloriesByDate.set(date, prev + qty);
+      } else if (ACTIVITY_METRIC_NAMES.some((n) => name === n || name.includes("exercise_time") || name.includes("exercise_minutes"))) {
+        const prev = activityByDate.get(date) || 0;
+        activityByDate.set(date, prev + Math.round(qty));
       }
     }
   }
   const calories: CalorieEntry[] = Array.from(caloriesByDate.entries())
     .map(([date, consumed]) => ({ date, consumed }))
     .sort((a, b) => (b.date > a.date ? 1 : -1));
-  return { weight, calories };
+  const activity: ActivityEntry[] = Array.from(activityByDate.entries())
+    .map(([date, minutes]) => ({ date, minutes }))
+    .sort((a, b) => (b.date > a.date ? 1 : -1));
+  return { weight, calories, activity };
 }
 
 function loadData(): HealthData {
-  if (!fs.existsSync(dataPath)) return { weight: [], calories: [] };
+  if (!fs.existsSync(dataPath)) return { weight: [], calories: [], activity: [] };
   const raw = fs.readFileSync(dataPath, "utf-8");
   try {
     const d = JSON.parse(raw) as HealthData;
     return {
       weight: Array.isArray(d.weight) ? d.weight : [],
       calories: Array.isArray(d.calories) ? d.calories : [],
+      activity: Array.isArray(d.activity) ? d.activity : [],
       updatedAt: d.updatedAt,
     };
   } catch {
-    return { weight: [], calories: [] };
+    return { weight: [], calories: [], activity: [] };
   }
 }
 
@@ -83,6 +99,18 @@ function mergeCalories(
   );
 }
 
+function mergeActivity(
+  existing: ActivityEntry[],
+  incoming: ActivityEntry[]
+): ActivityEntry[] {
+  const byDate = new Map<string, number>();
+  for (const e of existing) byDate.set(e.date, e.minutes);
+  for (const e of incoming) byDate.set(e.date, e.minutes);
+  return Array.from(byDate.entries())
+    .map(([date, minutes]) => ({ date, minutes }))
+    .sort((a, b) => (b.date > a.date ? 1 : -1));
+}
+
 export async function POST(request: NextRequest) {
   const auth = request.headers.get("authorization");
   const secret = process.env.HEALTH_INGEST_SECRET;
@@ -90,7 +118,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  let body: { weight?: WeightEntry[]; calories?: CalorieEntry[]; data?: { metrics?: HAEMetric[] } };
+  let body: { weight?: WeightEntry[]; calories?: CalorieEntry[]; activity?: ActivityEntry[]; data?: { metrics?: HAEMetric[] } };
   try {
     body = await request.json();
   } catch {
@@ -103,12 +131,14 @@ export async function POST(request: NextRequest) {
   const data = loadData();
 
   if (body.data?.metrics) {
-    const { weight: w, calories: c } = fromHealthAutoExport(body);
+    const { weight: w, calories: c, activity: a } = fromHealthAutoExport(body);
     if (w.length) data.weight = mergeWeight(data.weight, w);
     if (c.length) data.calories = mergeCalories(data.calories, c);
+    if (a.length) data.activity = mergeActivity(data.activity, a);
   } else {
     if (body.weight?.length) data.weight = mergeWeight(data.weight, body.weight);
     if (body.calories?.length) data.calories = mergeCalories(data.calories, body.calories);
+    if (body.activity?.length) data.activity = mergeActivity(data.activity, body.activity);
   }
 
   data.updatedAt = new Date().toISOString();

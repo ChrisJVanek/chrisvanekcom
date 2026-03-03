@@ -117,8 +117,11 @@ export default function HealthPage() {
       {healthSummary.length > 0 && (
         <section className="mb-10">
           <h2 className="font-display text-sm font-medium uppercase tracking-widest text-mute mb-4">
-            Weight & calories
+            Weight, calories & activity
           </h2>
+          <p className="text-sm text-mute mb-4">
+            From Health Auto Export: weight, dietary energy, and activity minutes (exercise minutes) per day.
+          </p>
           <div className="overflow-x-auto rounded-xl border border-black/10 dark:border-white/10">
             <table className="w-full text-left text-sm">
               <thead>
@@ -126,6 +129,7 @@ export default function HealthPage() {
                   <th className="font-display font-medium text-ink py-3 px-4">Date</th>
                   <th className="font-display font-medium text-ink py-3 px-4">Weight (kg)</th>
                   <th className="font-display font-medium text-ink py-3 px-4">Calories</th>
+                  <th className="font-display font-medium text-ink py-3 px-4">Activity</th>
                   <th className="font-display font-medium text-ink py-3 px-4">vs goal</th>
                 </tr>
               </thead>
@@ -141,6 +145,13 @@ export default function HealthPage() {
                     </td>
                     <td className="py-3 px-4 text-ink">
                       {row.consumed != null ? row.consumed : "—"}
+                    </td>
+                    <td className="py-3 px-4 text-ink tabular-nums">
+                      {row.activityMinutes != null
+                        ? row.activityMinutes >= 60
+                          ? `${Math.floor(row.activityMinutes / 60)}h ${row.activityMinutes % 60}m`
+                          : `${row.activityMinutes} min`
+                        : "—"}
                     </td>
                     <td className="py-3 px-4">
                       {row.goal != null && row.consumed != null ? (
