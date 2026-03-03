@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import {
   CHOLESTEROL_TOTAL,
   BLOOD_TEST_STATS,
@@ -112,10 +113,6 @@ function SmallStatCircle({ stat }: { stat: BloodTestStat }) {
 }
 
 export function BloodTestSection() {
-  const openReport = () => {
-    window.open(BLOOD_TEST_REPORT_PDF, "_blank", "noopener,noreferrer");
-  };
-
   return (
     <section className="mb-12 rounded-2xl border border-black/10 dark:border-white/10 overflow-hidden bg-gradient-to-b from-black/[0.02] to-transparent dark:from-white/[0.03] dark:to-transparent">
       <div className="p-6 sm:p-8">
@@ -123,13 +120,14 @@ export function BloodTestSection() {
           <h2 className="font-display text-lg font-semibold tracking-tight text-ink">
             Blood test
           </h2>
-          <button
-            type="button"
-            onClick={openReport}
+          <Link
+            href={BLOOD_TEST_REPORT_PDF}
+            target="_blank"
+            rel="noopener noreferrer"
             className="inline-flex items-center gap-2 rounded-lg bg-ink text-paper dark:bg-paper dark:text-ink px-3 py-2 text-sm font-medium hover:opacity-90 transition-opacity"
           >
             View report
-          </button>
+          </Link>
         </div>
 
         <p className="text-sm text-mute mb-6">
@@ -137,14 +135,15 @@ export function BloodTestSection() {
         </p>
 
         <div className="flex flex-col sm:flex-row sm:items-start gap-8 sm:gap-10">
-          <button
-            type="button"
-            onClick={openReport}
+          <Link
+            href={BLOOD_TEST_REPORT_PDF}
+            target="_blank"
+            rel="noopener noreferrer"
             className="flex flex-col items-center rounded-xl p-4 -m-2 hover:bg-black/5 dark:hover:bg-white/5 transition-colors text-left"
             aria-label="View blood test report"
           >
             <CholesterolGauge stat={CHOLESTEROL_TOTAL} />
-          </button>
+          </Link>
           <div className="flex-1 grid grid-cols-3 gap-4 sm:gap-6">
             {BLOOD_TEST_STATS.map((stat) => (
               <SmallStatCircle key={stat.label} stat={stat} />
