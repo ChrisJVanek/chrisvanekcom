@@ -1,6 +1,5 @@
 "use client";
 
-import { useRef } from "react";
 import {
   CHOLESTEROL_TOTAL,
   BLOOD_TEST_STATS,
@@ -113,18 +112,8 @@ function SmallStatCircle({ stat }: { stat: BloodTestStat }) {
 }
 
 export function BloodTestSection() {
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
   const openReport = () => {
     window.open(BLOOD_TEST_REPORT_PDF, "_blank", "noopener,noreferrer");
-  };
-
-  const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || file.type !== "application/pdf") return;
-    const url = URL.createObjectURL(file);
-    window.open(url, "_blank", "noopener,noreferrer");
-    e.target.value = "";
   };
 
   return (
@@ -134,30 +123,13 @@ export function BloodTestSection() {
           <h2 className="font-display text-lg font-semibold tracking-tight text-ink">
             Blood test
           </h2>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={openReport}
-              className="inline-flex items-center gap-2 rounded-lg border border-black/20 dark:border-white/20 px-3 py-2 text-sm font-medium text-ink hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
-            >
-              View report
-            </button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="application/pdf"
-              className="hidden"
-              onChange={handleUpload}
-              aria-label="Upload blood test report"
-            />
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              className="inline-flex items-center gap-2 rounded-lg bg-ink text-paper dark:bg-paper dark:text-ink px-3 py-2 text-sm font-medium hover:opacity-90 transition-opacity"
-            >
-              Upload report
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={openReport}
+            className="inline-flex items-center gap-2 rounded-lg bg-ink text-paper dark:bg-paper dark:text-ink px-3 py-2 text-sm font-medium hover:opacity-90 transition-opacity"
+          >
+            View report
+          </button>
         </div>
 
         <p className="text-sm text-mute mb-6">
