@@ -6,6 +6,7 @@ import {
 } from "@/lib/cronometer";
 import { getHealthData, getDailySummary } from "@/lib/health";
 import { DailySummaryCard } from "@/components/DailySummaryCard";
+import { DexaSection } from "@/components/DexaSection";
 
 function servingsByDay(servings: CronometerServing[]): Map<string, CronometerServing[]> {
   const byDay = new Map<string, CronometerServing[]>();
@@ -95,6 +96,8 @@ export default function HealthPage() {
           Nutrition and weight.
         </p>
       </header>
+
+      <DexaSection />
 
       {hasCronometer && (
         <>
