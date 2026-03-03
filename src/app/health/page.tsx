@@ -2,18 +2,35 @@ import Link from "next/link";
 import { getHealthData, getDailySummary } from "@/lib/health";
 
 function SyncOptions() {
+  const ingestUrl = "https://chrisvanek.com/api/health/ingest";
   return (
     <section className="mt-8 rounded-lg border border-black/10 dark:border-white/10 p-4 text-sm text-mute">
-      <h3 className="font-display font-medium text-ink mb-2">Sync from Apple Health</h3>
-      <ul className="list-disc list-inside space-y-1">
-        <li>
-          <strong>Export file:</strong> In Health app, tap profile → Export All Health Data. Unzip, then run{" "}
-          <code className="text-ink bg-black/5 dark:bg-white/10 px-1 rounded">npm run health:ingest-apple path/to/apple_health_export/export.xml</code> to merge weight and dietary calories into this data.
-        </li>
-        <li>
-          <strong>API:</strong> POST to <code className="text-ink bg-black/5 dark:bg-white/10 px-1 rounded">/api/health/ingest</code> with header <code className="text-ink bg-black/5 dark:bg-white/10 px-1 rounded">Authorization: Bearer YOUR_SECRET</code> (env: <code className="text-ink bg-black/5 dark:bg-white/10 px-1 rounded">HEALTH_INGEST_SECRET</code>). Body: weight and/or calories arrays with date, kg, consumed. Works with Health Auto Export or an iOS Shortcut that POSTs Health data.
-        </li>
-      </ul>
+      <h3 className="font-display font-medium text-ink mb-2">Health Auto Export (REST API)</h3>
+      <p className="mb-3">Use <strong>Format: JSON</strong> and add one header for auth.</p>
+      <dl className="space-y-2">
+        <div>
+          <dt className="font-medium text-ink">URL</dt>
+          <dd className="mt-0.5 break-all font-mono text-accent">{ingestUrl}</dd>
+        </div>
+        <div>
+          <dt className="font-medium text-ink">Header (for API key)</dt>
+          <dd className="mt-0.5">
+            Key: <code className="text-ink bg-black/5 dark:bg-white/10 px-1 rounded">Authorization</code>
+            <br />
+            Value: <code className="text-ink bg-black/5 dark:bg-white/10 px-1 rounded">Bearer YOUR_SECRET</code>
+          </dd>
+          <dd className="mt-1 text-xs">
+            Set <code className="bg-black/5 dark:bg-white/10 px-1 rounded">HEALTH_INGEST_SECRET</code> in your deployment (e.g. Railway) to the same value you use after &quot;Bearer &quot;. Then paste that value here.
+          </dd>
+        </div>
+      </dl>
+      <p className="mt-3 text-xs">
+        Data type: <strong>Health Metrics</strong>. Enable <strong>Summarize data</strong> and pick e.g. <strong>Days</strong>. Weight and dietary energy are mapped automatically.
+      </p>
+      <p className="mt-4 text-xs">
+        Export file option: Health app → Export All Health Data, then run{" "}
+        <code className="text-ink bg-black/5 dark:bg-white/10 px-1 rounded">npm run health:ingest-apple path/to/export.xml</code>.
+      </p>
     </section>
   );
 }

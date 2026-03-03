@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Instrument_Sans, Source_Serif_4 } from "next/font/google";
+import { Nav } from "@/components/Nav";
 import "./globals.css";
 
 const display = Instrument_Sans({
@@ -30,6 +31,9 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${display.variable} ${body.variable}`}>
       <body className="font-body antialiased min-h-screen">
+        <header className="max-w-2xl mx-auto px-5 pt-8 md:pt-10">
+          <Nav />
+        </header>
         {children}
       </body>
     </html>
