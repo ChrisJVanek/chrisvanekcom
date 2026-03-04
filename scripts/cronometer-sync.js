@@ -42,11 +42,54 @@ async function main() {
   try {
     console.log("Logging in...");
     await page.goto(LOGIN_URL, { waitUntil: "domcontentloaded", timeout: 30000 });
-    await page.waitForLoadState("networkidle").catch(() => {});
+    await page.waitForLoadState("domcontentloaded").catch(() => {});
+    await page.waitForTimeout(2500);
 
-    await page.getByRole("textbox", { name: /email/i }).fill(email);
-    await page.getByRole("textbox", { name: /password/i }).fill(password);
-    await page.getByRole("button", { name: /log in/i }).click();
+    const emailSelectors = [
+      () => page.locator('input[type="email"]'),
+      () => page.getByPlaceholder(/email|e-mail/i),
+      () => page.getByLabel(/email/i),
+      () => page.getByRole("textbox", { name: /email/i }),
+    ];
+    let emailInput = null;
+    for (const sel of emailSelectors) {
+      try {
+        const loc = sel().first();
+        await loc.waitFor({ state: "visible", timeout: 5000 });
+        emailInput = loc;
+        break;
+      } catch {
+        continue;
+      }
+    }
+    if (!emailInput) throw new Error("Could not find email input");
+    await emailInput.click();
+    await emailInput.fill(email, { force: true });
+    await page.waitForTimeout(300);
+
+    const passwordSelectors = [
+      () => page.locator('input[type="password"]'),
+      () => page.getByPlaceholder(/password/i),
+      () => page.getByLabel(/password/i),
+      () => page.getByRole("textbox", { name: /password/i }),
+    ];
+    let passwordInput = null;
+    for (const sel of passwordSelectors) {
+      try {
+        const loc = sel().first();
+        await loc.waitFor({ state: "visible", timeout: 5000 });
+        passwordInput = loc;
+        break;
+      } catch {
+        continue;
+      }
+    }
+    if (!passwordInput) throw new Error("Could not find password input");
+    await passwordInput.click();
+    await passwordInput.fill(password, { force: true });
+    await page.waitForTimeout(300);
+
+    await page.getByRole("button", { name: /log in|login/i }).first().click();
     await page.waitForTimeout(5000);
 
     console.log("Going to account / export...");
@@ -83,23 +126,28 @@ async function main() {
       fs.copyFileSync(savePath, dest);
       console.log("Saved dailysummary.csv");
     }
-    // Wait for first download to finish and export panel to be ready for second button
-    await page.waitForTimeout(5000);
+    await page.waitForTimeout(3000);
+
+    console.log("Re-opening Export Data for second export...");
+    await page.getByRole("button", { name: /export data/i }).first().click({ timeout: 10000 });
+    await page.waitForTimeout(2500);
 
     console.log("Exporting Food & recipe entries...");
-    // Try: second "Export ..." button by index, then various text/role selectors
+    // Try: any clickable (button/link) containing "Food" and "Recipe" or "recipe entries"
     const foodSelectors = [
       () => page.getByRole("button", { name: /export/i }).nth(1),
-      () => page.getByRole("button", { name: /export food|food & recipe|recipe entries/i }).first(),
-      () => page.getByRole("button", { name: /food.*recipe|recipe.*entries/i }).first(),
-      () => page.getByText(/export food|food & recipe entries/i).first(),
+      () => page.getByRole("button", { name: /food|recipe entries/i }).first(),
+      () => page.getByRole("link", { name: /food|recipe entries/i }).first(),
+      () => page.locator("button, a[href]").filter({ hasText: /food.*recipe|recipe.*entries/i }).first(),
       () => page.getByText(/food.*recipe.*entries/i).first(),
+      () => page.getByText(/export food|food & recipe/i).first(),
+      () => page.locator("[role='button'], button, a").filter({ hasText: /food/i }).filter({ hasText: /recipe|entries/i }).first(),
     ];
     let foodBtn = null;
     for (const getLocator of foodSelectors) {
       try {
         const loc = getLocator();
-        await loc.waitFor({ state: "visible", timeout: 15000 });
+        await loc.waitFor({ state: "visible", timeout: 12000 });
         foodBtn = loc;
         break;
       } catch {
@@ -112,7 +160,7 @@ async function main() {
     await foodBtn.scrollIntoViewIfNeeded().catch(() => {});
     await page.waitForTimeout(800);
     const [download2] = await Promise.all([
-      page.waitForEvent("download", { timeout: 30000 }),
+      page.waitForEvent("download", { timeout: 60000 }),
       foodBtn.click({ timeout: 30000, force: true }),
     ]);
     savePath = await download2.path();
