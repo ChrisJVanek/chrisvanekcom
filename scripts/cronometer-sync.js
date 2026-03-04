@@ -37,6 +37,7 @@ async function main() {
     acceptDownloads: true,
   });
   const page = await context.newPage();
+  page.setDefaultTimeout(30000);
 
   try {
     console.log("Logging in...");
@@ -83,11 +84,12 @@ async function main() {
       console.log("Saved dailysummary.csv");
     }
     // Wait for first download to finish and export panel to be ready for second button
-    await page.waitForTimeout(4000);
+    await page.waitForTimeout(5000);
 
     console.log("Exporting Food & recipe entries...");
-    const foodBtnTimeout = 25000;
+    // Try: second "Export ..." button by index, then various text/role selectors
     const foodSelectors = [
+      () => page.getByRole("button", { name: /export/i }).nth(1),
       () => page.getByRole("button", { name: /export food|food & recipe|recipe entries/i }).first(),
       () => page.getByRole("button", { name: /food.*recipe|recipe.*entries/i }).first(),
       () => page.getByText(/export food|food & recipe entries/i).first(),
@@ -97,7 +99,7 @@ async function main() {
     for (const getLocator of foodSelectors) {
       try {
         const loc = getLocator();
-        await loc.waitFor({ state: "visible", timeout: 8000 });
+        await loc.waitFor({ state: "visible", timeout: 15000 });
         foodBtn = loc;
         break;
       } catch {
@@ -108,10 +110,10 @@ async function main() {
       throw new Error("Could not find 'Export Food & recipe entries' button. Selectors may need updating.");
     }
     await foodBtn.scrollIntoViewIfNeeded().catch(() => {});
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(800);
     const [download2] = await Promise.all([
-      page.waitForEvent("download", { timeout: 25000 }),
-      foodBtn.click({ timeout: foodBtnTimeout }),
+      page.waitForEvent("download", { timeout: 30000 }),
+      foodBtn.click({ timeout: 30000, force: true }),
     ]);
     savePath = await download2.path();
     if (savePath && fs.existsSync(savePath)) {
