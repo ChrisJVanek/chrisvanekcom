@@ -8,9 +8,18 @@ interface DailySummaryCardProps {
   servings: CronometerServing[];
 }
 
+const CALORIE_GOAL = 1500;
+const OVER_THRESHOLD = 100; // over goal by more than this = Certified Fatty
+
+function getDayStatus(kcal: number): string | null {
+  if (kcal <= CALORIE_GOAL) return "Let's go girl";
+  if (kcal > CALORIE_GOAL + OVER_THRESHOLD) return "Certified Fatty";
+  return null;
+}
+
 export function DailySummaryCard({ day, servings }: DailySummaryCardProps) {
   const [overlayOpen, setOverlayOpen] = useState(false);
-
+  const status = getDayStatus(day.energyKcal);
   const closeOverlay = useCallback(() => setOverlayOpen(false), []);
 
   return (
@@ -36,6 +45,11 @@ export function DailySummaryCard({ day, servings }: DailySummaryCardProps) {
             </span>
             <span className="text-mute text-sm">kcal</span>
           </button>
+          {status && (
+            <p className="text-sm font-medium text-ink mb-3">
+              Status: {status}
+            </p>
+          )}
           <div className="grid grid-cols-3 gap-3 text-center">
             <div className="rounded-lg bg-black/5 dark:bg-white/5 py-2 px-1">
               <div className="text-xs text-mute uppercase tracking-wider">Protein</div>
