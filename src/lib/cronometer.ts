@@ -108,14 +108,10 @@ export function getCronometerUpdatedAt(): string | null {
       // fall through
     }
   }
-  let mtime: Date | null = null;
-  if (fs.existsSync(dailyJsonPath)) {
-    const s = fs.statSync(dailyJsonPath);
-    if (!mtime || s.mtime > mtime) mtime = s.mtime;
-  }
-  if (fs.existsSync(servingsJsonPath)) {
-    const s = fs.statSync(servingsJsonPath);
-    if (!mtime || s.mtime > mtime) mtime = s.mtime;
-  }
-  return mtime ? mtime.toISOString() : null;
+  const mtimes: Date[] = [];
+  if (fs.existsSync(dailyJsonPath)) mtimes.push(fs.statSync(dailyJsonPath).mtime);
+  if (fs.existsSync(servingsJsonPath)) mtimes.push(fs.statSync(servingsJsonPath).mtime);
+  if (mtimes.length === 0) return null;
+  const latest = new Date(Math.max(...mtimes.map((d) => d.getTime())));
+  return latest.toISOString();
 }
