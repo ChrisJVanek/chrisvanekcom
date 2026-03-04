@@ -2,6 +2,7 @@ import Link from "next/link";
 import {
   getCronometerDailySummaries,
   getCronometerServings,
+  getCronometerUpdatedAt,
   type CronometerServing,
 } from "@/lib/cronometer";
 import { getHealthData, getDailySummary } from "@/lib/health";
@@ -25,11 +26,20 @@ export const metadata = {
   description: "Weight and calorie tracking.",
 };
 
+function formatUpdatedAt(iso: string | null | undefined): string {
+  if (!iso) return "";
+  return new Date(iso).toLocaleString(undefined, {
+    dateStyle: "medium",
+    timeStyle: "short",
+  });
+}
+
 export default function HealthPage() {
   const healthData = getHealthData();
   const healthSummary = getDailySummary(healthData);
   const cronometerDays = getCronometerDailySummaries();
   const cronometerServings = getCronometerServings();
+  const cronometerUpdatedAt = getCronometerUpdatedAt();
   const hasCronometer = cronometerDays.length > 0 || cronometerServings.length > 0;
   const servingsByDayMap = servingsByDay(cronometerServings);
 
@@ -110,6 +120,11 @@ export default function HealthPage() {
                 <ExpandableFoodLog servings={cronometerServings} />
               </div>
             </div>
+            {cronometerUpdatedAt && (
+              <p className="text-xs text-mute mt-4">
+                Last updated: {formatUpdatedAt(cronometerUpdatedAt)}
+              </p>
+            )}
           </section>
         </>
       )}
@@ -171,7 +186,7 @@ export default function HealthPage() {
           </div>
           {healthData.updatedAt && (
             <p className="text-xs text-mute mt-2">
-              Last updated: {new Date(healthData.updatedAt).toLocaleDateString(undefined, { dateStyle: "medium" })}
+              Last updated: {formatUpdatedAt(healthData.updatedAt)}
             </p>
           )}
         </section>

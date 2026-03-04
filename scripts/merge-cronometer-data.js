@@ -13,6 +13,7 @@ const { parse } = require("csv-parse/sync");
 const dataDir = path.join(process.cwd(), "src", "data", "cronometer");
 const dailyPath = path.join(dataDir, "cronometer-daily.json");
 const servingsPath = path.join(dataDir, "cronometer-servings.json");
+const metaPath = path.join(dataDir, "cronometer-meta.json");
 
 function num(val) {
   if (val == null || val === "") return 0;
@@ -119,6 +120,11 @@ function run() {
   if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
   fs.writeFileSync(dailyPath, JSON.stringify(mergedDaily, null, 2), "utf-8");
   fs.writeFileSync(servingsPath, JSON.stringify(mergedServings, null, 2), "utf-8");
+  fs.writeFileSync(
+    metaPath,
+    JSON.stringify({ updatedAt: new Date().toISOString() }, null, 2),
+    "utf-8"
+  );
 
   console.log(
     "Merged:",

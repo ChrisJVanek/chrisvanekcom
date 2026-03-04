@@ -5,6 +5,7 @@ import { parse } from "csv-parse/sync";
 const dataDir = path.join(process.cwd(), "src", "data", "cronometer");
 const dailyJsonPath = path.join(dataDir, "cronometer-daily.json");
 const servingsJsonPath = path.join(dataDir, "cronometer-servings.json");
+const metaPath = path.join(dataDir, "cronometer-meta.json");
 
 export interface CronometerDailySummary {
   date: string;
@@ -95,4 +96,26 @@ export function getCronometerServings(): CronometerServing[] {
       if (a.day !== b.day) return b.day > a.day ? 1 : -1;
       return (b.time || "").localeCompare(a.time || "");
     });
+}
+
+/** ISO string when Cronometer data was last updated (from merge or meta file). */
+export function getCronometerUpdatedAt(): string | null {
+  if (fs.existsSync(metaPath)) {
+    try {
+      const meta = JSON.parse(fs.readFileSync(metaPath, "utf-8")) as { updatedAt?: string };
+      if (meta.updatedAt) return meta.updatedAt;
+    } catch {
+      // fall through
+    }
+  }
+  let mtime: Date | null = null;
+  if (fs.existsSync(dailyJsonPath)) {
+    const s = fs.statSync(dailyJsonPath);
+    if (!mtime || s.mtime > mtime) mtime = s.mtime;
+  }
+  if (fs.existsSync(servingsJsonPath)) {
+    const s = fs.statSync(servingsJsonPath);
+    if (!mtime || s.mtime > mtime) mtime = s.mtime;
+  }
+  return mtime ? mtime.toISOString() : null;
 }
