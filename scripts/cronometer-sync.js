@@ -82,13 +82,36 @@ async function main() {
       fs.copyFileSync(savePath, dest);
       console.log("Saved dailysummary.csv");
     }
-    await page.waitForTimeout(2000);
+    // Wait for first download to finish and export panel to be ready for second button
+    await page.waitForTimeout(4000);
 
     console.log("Exporting Food & recipe entries...");
-    const foodBtn = page.getByRole("button", { name: /export food|food & recipe|recipe entries/i }).first();
+    const foodBtnTimeout = 25000;
+    const foodSelectors = [
+      () => page.getByRole("button", { name: /export food|food & recipe|recipe entries/i }).first(),
+      () => page.getByRole("button", { name: /food.*recipe|recipe.*entries/i }).first(),
+      () => page.getByText(/export food|food & recipe entries/i).first(),
+      () => page.getByText(/food.*recipe.*entries/i).first(),
+    ];
+    let foodBtn = null;
+    for (const getLocator of foodSelectors) {
+      try {
+        const loc = getLocator();
+        await loc.waitFor({ state: "visible", timeout: 8000 });
+        foodBtn = loc;
+        break;
+      } catch {
+        continue;
+      }
+    }
+    if (!foodBtn) {
+      throw new Error("Could not find 'Export Food & recipe entries' button. Selectors may need updating.");
+    }
+    await foodBtn.scrollIntoViewIfNeeded().catch(() => {});
+    await page.waitForTimeout(500);
     const [download2] = await Promise.all([
-      page.waitForEvent("download", { timeout: 20000 }),
-      foodBtn.click({ timeout: 10000 }),
+      page.waitForEvent("download", { timeout: 25000 }),
+      foodBtn.click({ timeout: foodBtnTimeout }),
     ]);
     savePath = await download2.path();
     if (savePath && fs.existsSync(savePath)) {
@@ -103,10 +126,25 @@ async function main() {
     await browser.close();
   }
 
-  // Merge into JSON
-  const { run } = require("./merge-cronometer-data.js");
-  run();
+  // Merge: write to DB if DATABASE_URL set (dynamic), else to JSON files (legacy)
+  const useDb = !!process.env.DATABASE_URL;
+  if (useDb) {
+    const { parseDailyCsv, parseServingsCsv, mergeDaily, mergeServings } = require("./merge-cronometer-data.js");
+    const { getCronometerFromDb, writeCronometerToDb } = require("./cronometer-db-write.js");
+    const incomingDaily = parseDailyCsv(path.join(DATA_DIR, "dailysummary.csv"));
+    const incomingServings = parseServingsCsv(path.join(DATA_DIR, "servings.csv"));
+    const existing = await getCronometerFromDb();
+    const mergedDaily = mergeDaily(existing.mergedDaily, incomingDaily);
+    const mergedServings = mergeServings(existing.mergedServings, incomingServings);
+    await writeCronometerToDb(mergedDaily, mergedServings);
+  } else {
+    const { run } = require("./merge-cronometer-data.js");
+    run();
+  }
   console.log("Cronometer sync done.");
 }
 
-main();
+main().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});

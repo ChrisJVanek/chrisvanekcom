@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { parse } from "csv-parse/sync";
+import { prisma } from "@/lib/db";
 
 const dataDir = path.join(process.cwd(), "src", "data", "cronometer");
 const dailyJsonPath = path.join(dataDir, "cronometer-daily.json");
@@ -33,7 +34,7 @@ function num(val: string | undefined): number {
   return Number.isFinite(n) ? n : 0;
 }
 
-export function getCronometerDailySummaries(): CronometerDailySummary[] {
+function getDailyFromFiles(): CronometerDailySummary[] {
   if (fs.existsSync(dailyJsonPath)) {
     try {
       const data = JSON.parse(fs.readFileSync(dailyJsonPath, "utf-8")) as CronometerDailySummary[];
@@ -64,13 +65,13 @@ export function getCronometerDailySummaries(): CronometerDailySummary[] {
     .sort((a, b) => (b.date > a.date ? 1 : -1));
 }
 
-export function getCronometerServings(): CronometerServing[] {
+function getServingsFromFiles(): CronometerServing[] {
   if (fs.existsSync(servingsJsonPath)) {
     try {
       const data = JSON.parse(fs.readFileSync(servingsJsonPath, "utf-8")) as CronometerServing[];
       return Array.isArray(data) ? data : [];
     } catch {
-      // fall through to CSV
+      // fall through
     }
   }
   const file = path.join(dataDir, "servings.csv");
@@ -98,8 +99,64 @@ export function getCronometerServings(): CronometerServing[] {
     });
 }
 
-/** ISO string when Cronometer data was last updated (from merge or meta file). */
-export function getCronometerUpdatedAt(): string | null {
+/** Cronometer daily summaries: from DB when DATABASE_URL is set, else from files. */
+export async function getCronometerDailySummaries(): Promise<CronometerDailySummary[]> {
+  if (process.env.DATABASE_URL) {
+    try {
+      const rows = await prisma.cronometerDaily.findMany({
+        orderBy: { date: "desc" },
+      });
+      return rows.map((r) => ({
+        date: r.date,
+        energyKcal: r.energyKcal,
+        carbsG: r.carbsG,
+        fatG: r.fatG,
+        proteinG: r.proteinG,
+        fiberG: r.fiberG,
+        sodiumMg: r.sodiumMg,
+      }));
+    } catch {
+      return getDailyFromFiles();
+    }
+  }
+  return getDailyFromFiles();
+}
+
+/** Cronometer servings: from DB when DATABASE_URL is set, else from files. */
+export async function getCronometerServings(): Promise<CronometerServing[]> {
+  if (process.env.DATABASE_URL) {
+    try {
+      const rows = await prisma.cronometerServing.findMany({
+        orderBy: [{ day: "desc" }, { time: "desc" }],
+      });
+      return rows.map((r) => ({
+        day: r.day,
+        time: r.time ?? "",
+        group: r.group ?? "",
+        foodName: r.foodName,
+        amount: r.amount ?? "",
+        energyKcal: r.energyKcal,
+        category: r.category ?? "",
+      }));
+    } catch {
+      return getServingsFromFiles();
+    }
+  }
+  return getServingsFromFiles();
+}
+
+/** ISO string when Cronometer data was last updated (DB meta or file). */
+export async function getCronometerUpdatedAt(): Promise<string | null> {
+  if (process.env.DATABASE_URL) {
+    try {
+      const meta = await prisma.cronometerMeta.findUnique({
+        where: { key: "updatedAt" },
+      });
+      if (meta?.value) return meta.value;
+    } catch {
+      // fall through
+    }
+  }
   if (fs.existsSync(metaPath)) {
     try {
       const meta = JSON.parse(fs.readFileSync(metaPath, "utf-8")) as { updatedAt?: string };

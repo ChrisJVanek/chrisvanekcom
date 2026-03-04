@@ -1,0 +1,38 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model CronometerDaily {
+  id        String   @id @default(cuid())
+  date      String   @unique
+  energyKcal Float
+  carbsG    Float
+  fatG      Float
+  proteinG  Float
+  fiberG    Float
+  sodiumMg  Float
+  updatedAt DateTime @updatedAt
+}
+
+model CronometerServing {
+  id         String   @id @default(cuid())
+  day        String
+  time       String?
+  group      String?
+  foodName   String
+  amount     String?
+  energyKcal Float
+  category   String?
+  createdAt  DateTime @default(now())
+}
+
+model CronometerMeta {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}

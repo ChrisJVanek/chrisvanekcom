@@ -22,31 +22,32 @@ npm run build
 npm start
 ```
 
-## Cronometer sync
+## Cronometer sync (database)
 
-The `/health` page can show nutrition data from Cronometer. To pull data automatically:
+The `/health` page shows nutrition data from Cronometer. Data is stored in **PostgreSQL** and loaded dynamically (no git commits).
 
-1. **Credentials**: Create a `.env` (do not commit it) with:
+1. **Database**: Create a PostgreSQL database (e.g. Railway) and set `DATABASE_URL` in your deployment and in GitHub Actions secrets. Run migrations once:
    ```bash
-   CRONOMETER_EMAIL=your@email.com
-   CRONOMETER_PASSWORD=your-password
+   npx prisma migrate deploy
    ```
 
-2. **Test run** (browser window opens so you can see the flow):
+2. **Credentials**: In `.env` (local) and in repo **Secrets and variables → Actions** set:
+   - `CRONOMETER_EMAIL`
+   - `CRONOMETER_PASSWORD`
+   - `DATABASE_URL` (PostgreSQL connection string)
+
+3. **Test run** (browser window opens):
    ```bash
    npm run cronometer:sync -- --headed
    ```
-   The script logs in at cronometer.com, goes to Account, clicks Export Data, selects last 7 days, exports "Daily nutrition" and "Food & recipe entries", saves the CSVs to `src/data/cronometer/`, then merges them into the JSON store (no duplicate days; backdated/updated days overwrite).
+   With `DATABASE_URL` set, the script writes to the DB (merge with existing). Without it, it writes to `src/data/cronometer/*` JSON files (legacy).
 
-3. **Merge only** (if you already have new CSVs in `src/data/cronometer/`):
-   ```bash
-   npm run cronometer:merge
-   ```
-
-4. **Midnight run**: A GitHub Action (`.github/workflows/cronometer-sync.yml`) runs at **00:00 UTC** every day. Add repo secrets `CRONOMETER_EMAIL` and `CRONOMETER_PASSWORD` in Settings → Secrets and variables → Actions. The workflow commits updated `src/data/cronometer/*` if anything changed.
+4. **Scheduled sync**: The GitHub Action runs at **00:00 UTC** and **14:00 UTC** (midnight GMT+10). It does **not** commit; it only writes to the database. The site reads from the DB at request time.
 
 ## Deployment
 
 The site runs behind **Cloudflare -> Railway**. To avoid redirect loops:
 
 - **Cloudflare**: SSL/TLS must be set to **Full** or **Full (strict)** -- never **Flexible**. Flexible sends HTTP to Railway, Railway forces HTTPS, creating an infinite redirect loop.
+
+- **Railway**: Set `DATABASE_URL` to your PostgreSQL service. To create Cronometer tables, run migrations on deploy (e.g. set a release/build command that runs `npx prisma migrate deploy` before `npm start`, or run it once manually).

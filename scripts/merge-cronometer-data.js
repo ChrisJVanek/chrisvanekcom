@@ -104,7 +104,8 @@ function mergeServings(existing, incoming) {
   });
 }
 
-function run() {
+function run(opts = {}) {
+  const { skipWriteFiles = false } = opts;
   const dailyCsv = path.join(dataDir, "dailysummary.csv");
   const servingsCsv = path.join(dataDir, "servings.csv");
 
@@ -117,14 +118,16 @@ function run() {
   const mergedDaily = mergeDaily(existingDaily, incomingDaily);
   const mergedServings = mergeServings(existingServings, incomingServings);
 
-  if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
-  fs.writeFileSync(dailyPath, JSON.stringify(mergedDaily, null, 2), "utf-8");
-  fs.writeFileSync(servingsPath, JSON.stringify(mergedServings, null, 2), "utf-8");
-  fs.writeFileSync(
-    metaPath,
-    JSON.stringify({ updatedAt: new Date().toISOString() }, null, 2),
-    "utf-8"
-  );
+  if (!skipWriteFiles) {
+    if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
+    fs.writeFileSync(dailyPath, JSON.stringify(mergedDaily, null, 2), "utf-8");
+    fs.writeFileSync(servingsPath, JSON.stringify(mergedServings, null, 2), "utf-8");
+    fs.writeFileSync(
+      metaPath,
+      JSON.stringify({ updatedAt: new Date().toISOString() }, null, 2),
+      "utf-8"
+    );
+  }
 
   console.log(
     "Merged:",
@@ -133,11 +136,23 @@ function run() {
     mergedServings.length,
     "servings."
   );
-  return { dailyCount: mergedDaily.length, servingsCount: mergedServings.length };
+  return {
+    dailyCount: mergedDaily.length,
+    servingsCount: mergedServings.length,
+    mergedDaily,
+    mergedServings,
+  };
 }
 
 if (require.main === module) {
   run();
 } else {
-  module.exports = { run };
+  module.exports = {
+    run,
+    parseDailyCsv,
+    parseServingsCsv,
+    mergeDaily,
+    mergeServings,
+    dataDir,
+  };
 }

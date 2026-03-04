@@ -52,11 +52,13 @@ function getCaloriesAndActivityRows(
 
 const CALORIE_GOAL = 1500;
 
-export default function HealthPage() {
+export default async function HealthPage() {
   const healthData = getHealthData();
-  const cronometerDays = getCronometerDailySummaries();
-  const cronometerServings = getCronometerServings();
-  const cronometerUpdatedAt = getCronometerUpdatedAt();
+  const [cronometerDays, cronometerServings, cronometerUpdatedAt] = await Promise.all([
+    getCronometerDailySummaries(),
+    getCronometerServings(),
+    getCronometerUpdatedAt(),
+  ]);
   const hasCronometer = cronometerDays.length > 0 || cronometerServings.length > 0;
   const servingsByDayMap = servingsByDay(cronometerServings);
   const caloriesActivityRows = getCaloriesAndActivityRows(cronometerDays, healthData.activity);
