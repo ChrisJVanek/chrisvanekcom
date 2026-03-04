@@ -5,7 +5,7 @@ import {
   getCronometerUpdatedAt,
   type CronometerServing,
 } from "@/lib/cronometer";
-import { getHealthData, getDailySummary } from "@/lib/health";
+import { getHealthData } from "@/lib/health";
 import { DailySummaryCard } from "@/components/DailySummaryCard";
 import { DexaSection } from "@/components/DexaSection";
 import { BloodTestSection } from "@/components/BloodTestSection";
@@ -34,14 +34,35 @@ function formatUpdatedAt(iso: string | null | undefined): string {
   });
 }
 
+/** Rows for calories (Cronometer) + activity (Apple Health only). No weight from Apple Health. */
+function getCaloriesAndActivityRows(
+  cronometerDays: { date: string; energyKcal: number }[],
+  activityEntries: { date: string; minutes: number }[]
+): Array<{ date: string; consumed: number | null; activityMinutes: number | null }> {
+  const byDate = new Map<string, { consumed: number | null; activityMinutes: number | null }>();
+  for (const a of activityEntries) {
+    byDate.set(a.date, { consumed: null, activityMinutes: a.minutes });
+  }
+  for (const d of cronometerDays) {
+    const existing = byDate.get(d.date) ?? { consumed: null, activityMinutes: null };
+    byDate.set(d.date, { ...existing, consumed: d.energyKcal });
+  }
+  return Array.from(byDate.entries())
+    .map(([date, rest]) => ({ date, ...rest }))
+    .sort((a, b) => (b.date > a.date ? 1 : -1));
+}
+
+const CALORIE_GOAL = 1500;
+
 export default function HealthPage() {
   const healthData = getHealthData();
-  const healthSummary = getDailySummary(healthData);
   const cronometerDays = getCronometerDailySummaries();
   const cronometerServings = getCronometerServings();
   const cronometerUpdatedAt = getCronometerUpdatedAt();
   const hasCronometer = cronometerDays.length > 0 || cronometerServings.length > 0;
   const servingsByDayMap = servingsByDay(cronometerServings);
+  const caloriesActivityRows = getCaloriesAndActivityRows(cronometerDays, healthData.activity);
+  const hasActivitySection = caloriesActivityRows.length > 0;
 
   return (
     <main className="max-w-2xl mx-auto px-5 py-16 md:py-24">
@@ -129,37 +150,33 @@ export default function HealthPage() {
         </>
       )}
 
-      {healthSummary.length > 0 && (
+      {hasActivitySection && (
         <section className="mb-10">
           <h2 className="font-display text-sm font-medium uppercase tracking-widest text-mute mb-4">
-            Weight, calories & activity
+            Calories & activity
           </h2>
           <p className="text-sm text-mute mb-4">
-            From Health Auto Export: weight, dietary energy, and activity minutes (exercise minutes) per day.
+            Calories from Cronometer; activity (exercise minutes) from Apple Health export only.
           </p>
           <div className="overflow-x-auto rounded-xl border border-black/10 dark:border-white/10">
             <table className="w-full text-left text-sm">
               <thead>
                 <tr className="border-b border-black/10 dark:border-white/10">
                   <th className="font-display font-medium text-ink py-3 px-4">Date</th>
-                  <th className="font-display font-medium text-ink py-3 px-4">Weight (kg)</th>
                   <th className="font-display font-medium text-ink py-3 px-4">Calories</th>
                   <th className="font-display font-medium text-ink py-3 px-4">Activity</th>
                   <th className="font-display font-medium text-ink py-3 px-4">vs goal</th>
                 </tr>
               </thead>
               <tbody>
-                {healthSummary.map((row) => (
+                {caloriesActivityRows.map((row) => (
                   <tr
                     key={row.date}
                     className="border-b border-black/5 dark:border-white/5 last:border-0"
                   >
                     <td className="py-3 px-4 text-ink">{row.date}</td>
                     <td className="py-3 px-4 text-ink">
-                      {row.weight != null ? row.weight.toFixed(1) : "—"}
-                    </td>
-                    <td className="py-3 px-4 text-ink">
-                      {row.consumed != null ? row.consumed : "—"}
+                      {row.consumed != null ? Math.round(row.consumed) : "—"}
                     </td>
                     <td className="py-3 px-4 text-ink tabular-nums">
                       {row.activityMinutes != null
@@ -169,8 +186,8 @@ export default function HealthPage() {
                         : "—"}
                     </td>
                     <td className="py-3 px-4">
-                      {row.goal != null && row.consumed != null ? (
-                        row.consumed <= row.goal ? (
+                      {row.consumed != null ? (
+                        row.consumed <= CALORIE_GOAL ? (
                           <span className="text-green-600 dark:text-green-400">under</span>
                         ) : (
                           <span className="text-amber-600 dark:text-amber-400">over</span>
@@ -184,15 +201,15 @@ export default function HealthPage() {
               </tbody>
             </table>
           </div>
-          {healthData.updatedAt && (
+          {healthData.updatedAt && healthData.activity.length > 0 && (
             <p className="text-xs text-mute mt-2">
-              Last updated: {formatUpdatedAt(healthData.updatedAt)}
+              Activity last updated: {formatUpdatedAt(healthData.updatedAt)}
             </p>
           )}
         </section>
       )}
 
-      {!hasCronometer && healthSummary.length === 0 && (
+      {!hasCronometer && !hasActivitySection && (
         <section className="rounded-xl border border-black/10 dark:border-white/10 p-6 text-mute">
           <p>No entries yet.</p>
         </section>
