@@ -1,10 +1,12 @@
-# Run Cronometer export + merge at midnight UTC every day.
+# Run Cronometer export + merge daily. Site timezone is GMT+10.
+# 00:00 UTC and 14:00 UTC (= midnight GMT+10) so the latest day is picked up.
 # Add repo secrets: CRONOMETER_EMAIL, CRONOMETER_PASSWORD.
 name: Cronometer sync
 
 on:
   schedule:
     - cron: "0 0 * * *"
+    - cron: "0 14 * * *"
   workflow_dispatch:
 
 jobs:
