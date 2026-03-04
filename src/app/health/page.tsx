@@ -10,6 +10,7 @@ import { DailySummaryCard } from "@/components/DailySummaryCard";
 import { DexaSection } from "@/components/DexaSection";
 import { BloodTestSection } from "@/components/BloodTestSection";
 import { ExpandableFoodLog } from "@/components/ExpandableFoodLog";
+import { formatDateInSiteTz, formatDateTimeInSiteTz } from "@/lib/site";
 
 function servingsByDay(servings: CronometerServing[]): Map<string, CronometerServing[]> {
   const byDay = new Map<string, CronometerServing[]>();
@@ -28,10 +29,7 @@ export const metadata = {
 
 function formatUpdatedAt(iso: string | null | undefined): string {
   if (!iso) return "";
-  return new Date(iso).toLocaleString(undefined, {
-    dateStyle: "medium",
-    timeStyle: "short",
-  });
+  return formatDateTimeInSiteTz(iso);
 }
 
 /** Rows for calories (Cronometer) + activity (Apple Health only). No weight from Apple Health. */
@@ -78,7 +76,7 @@ export default function HealthPage() {
           Health
         </h1>
         <p className="text-mute">
-          Nutrition and weight.
+          Nutrition and weight. Days and times are in GMT+10.
         </p>
       </header>
 
@@ -174,7 +172,7 @@ export default function HealthPage() {
                     key={row.date}
                     className="border-b border-black/5 dark:border-white/5 last:border-0"
                   >
-                    <td className="py-3 px-4 text-ink">{row.date}</td>
+                    <td className="py-3 px-4 text-ink">{formatDateInSiteTz(row.date, "short")}</td>
                     <td className="py-3 px-4 text-ink">
                       {row.consumed != null ? Math.round(row.consumed) : "—"}
                     </td>

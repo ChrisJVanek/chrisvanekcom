@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { CronometerServing } from "@/lib/cronometer";
+import { formatDateInSiteTz } from "@/lib/site";
 
 interface ExpandableFoodLogProps {
   servings: CronometerServing[];
@@ -39,11 +40,7 @@ export function ExpandableFoodLog({ servings }: ExpandableFoodLogProps) {
               aria-expanded={isExpanded}
             >
               <time className="font-display text-sm font-medium text-ink">
-                {new Date(day + "T12:00:00").toLocaleDateString(undefined, {
-                  weekday: "short",
-                  month: "short",
-                  day: "numeric",
-                })}
+                {formatDateInSiteTz(day, "short")}
               </time>
               <span className="text-mute text-sm">{items.length} entries</span>
               <span className="text-mute text-sm" aria-hidden>

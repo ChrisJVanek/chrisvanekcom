@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from "react";
 import type { CronometerDailySummary, CronometerServing } from "@/lib/cronometer";
+import { formatDateInSiteTz } from "@/lib/site";
 
 interface DailySummaryCardProps {
   day: CronometerDailySummary;
@@ -27,12 +28,7 @@ export function DailySummaryCard({ day, servings }: DailySummaryCardProps) {
       <article className="rounded-xl border border-black/10 dark:border-white/10 overflow-hidden bg-black/[0.02] dark:bg-white/[0.02] hover:border-accent/30 transition-colors">
         <div className="p-4 sm:p-5">
           <time className="font-display text-sm font-medium text-mute uppercase tracking-wider block mb-3">
-            {new Date(day.date + "T12:00:00").toLocaleDateString(undefined, {
-              weekday: "short",
-              month: "short",
-              day: "numeric",
-              year: "numeric",
-            })}
+            {formatDateInSiteTz(day.date)}
           </time>
           <button
             type="button"
@@ -87,11 +83,7 @@ export function DailySummaryCard({ day, servings }: DailySummaryCardProps) {
           >
             <header className="px-4 py-3 border-b border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 flex items-center justify-between">
               <time className="font-display text-sm font-medium text-ink">
-                {new Date(day.date + "T12:00:00").toLocaleDateString(undefined, {
-                  weekday: "long",
-                  month: "short",
-                  day: "numeric",
-                })}
+                {formatDateInSiteTz(day.date, "longWeekday")}
               </time>
               <button
                 type="button"

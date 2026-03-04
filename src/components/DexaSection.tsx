@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { DEXA_STATS, DEXA_REPORT_PDF, DEXA_SCAN_DATE, type DexaStat, type DexaStatus } from "@/data/dexa";
+import { formatDateInSiteTz } from "@/lib/site";
 
 const STATUS_COLORS: Record<DexaStatus, { ring: string; text: string }> = {
   optimal: {
@@ -77,7 +78,7 @@ export function DexaSection() {
               Body composition
             </h2>
             <p className="text-sm text-mute mt-0.5">
-              DEXA scan · {new Date(DEXA_SCAN_DATE + "T12:00:00").toLocaleDateString(undefined, { dateStyle: "long" })}
+              DEXA scan · {formatDateInSiteTz(DEXA_SCAN_DATE, "long")}
             </p>
           </div>
           <Link
