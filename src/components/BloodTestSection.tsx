@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import {
   CHOLESTEROL_TOTAL,
   BLOOD_TEST_STATS,
@@ -120,14 +119,14 @@ export function BloodTestSection() {
           <h2 className="font-display text-lg font-semibold tracking-tight text-ink">
             Blood test
           </h2>
-          <Link
+          <a
             href={BLOOD_TEST_REPORT_PDF}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 rounded-lg bg-ink text-paper dark:bg-paper dark:text-ink px-3 py-2 text-sm font-medium hover:opacity-90 transition-opacity"
           >
             View report
-          </Link>
+          </a>
         </div>
 
         <p className="text-sm text-mute mb-6">
@@ -135,7 +134,7 @@ export function BloodTestSection() {
         </p>
 
         <div className="flex flex-col sm:flex-row sm:items-start gap-8 sm:gap-10">
-          <Link
+          <a
             href={BLOOD_TEST_REPORT_PDF}
             target="_blank"
             rel="noopener noreferrer"
@@ -143,7 +142,7 @@ export function BloodTestSection() {
             aria-label="View blood test report"
           >
             <CholesterolGauge stat={CHOLESTEROL_TOTAL} />
-          </Link>
+          </a>
           <div className="flex-1 grid grid-cols-3 gap-4 sm:gap-6">
             {BLOOD_TEST_STATS.map((stat) => (
               <SmallStatCircle key={stat.label} stat={stat} />
