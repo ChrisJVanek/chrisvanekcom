@@ -1,9 +1,34 @@
 /**
  * Blood test summary. Update with your latest results.
  * Cholesterol in mg/dL (US). Optimal: Total < 200, LDL < 100, HDL ≥ 60, Trig < 150.
+ * AU uses mmol/L.
  */
 
 export const BLOOD_TEST_REPORT_PDF = "/health/blood-test-report.pdf";
+
+/** Cholesterol (total, LDL, HDL): mg/dL → mmol/L */
+export function mgDlToMmolCholesterol(mgDl: number): number {
+  return mgDl / 38.67;
+}
+
+/** Triglycerides: mg/dL → mmol/L */
+export function mgDlToMmolTriglycerides(mgDl: number): number {
+  return mgDl / 88.57;
+}
+
+export function formatCholesterolDual(mgDl: number): { us: string; au: string } {
+  return {
+    us: `${Math.round(mgDl)} mg/dL`,
+    au: `${mgDlToMmolCholesterol(mgDl).toFixed(2)} mmol/L`,
+  };
+}
+
+export function formatTriglyceridesDual(mgDl: number): { us: string; au: string } {
+  return {
+    us: `${Math.round(mgDl)} mg/dL`,
+    au: `${mgDlToMmolTriglycerides(mgDl).toFixed(2)} mmol/L`,
+  };
+}
 
 export type BloodTestStatus = "optimal" | "moderate" | "above";
 

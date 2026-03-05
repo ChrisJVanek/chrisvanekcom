@@ -23,6 +23,8 @@ function servingsByDay(servings: CronometerServing[]): Map<string, CronometerSer
   return byDay;
 }
 
+export const dynamic = "force-dynamic";
+
 export const metadata = {
   title: "Health",
   description: "Weight and calorie tracking.",

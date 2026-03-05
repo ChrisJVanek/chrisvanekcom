@@ -4,6 +4,8 @@ import {
   CHOLESTEROL_TOTAL,
   BLOOD_TEST_STATS,
   BLOOD_TEST_REPORT_PDF,
+  formatCholesterolDual,
+  formatTriglyceridesDual,
   type BloodTestStat,
   type BloodTestStatus,
 } from "@/data/blood-test";
@@ -61,10 +63,13 @@ function CholesterolGauge({ stat }: { stat: BloodTestStat }) {
             {stat.value}
           </span>
           <span className="text-sm text-mute">{stat.unit}</span>
+          <span className="text-xs text-mute mt-0.5">
+            {formatCholesterolDual(stat.value).au}
+          </span>
         </div>
       </div>
       <span className="font-display text-base font-semibold text-ink mt-3">{stat.label}</span>
-      <span className="text-sm text-mute mt-0.5">Optimal: {stat.optimalRange}</span>
+      <span className="text-sm text-mute mt-0.5">Optimal: {stat.optimalRange} (US)</span>
     </div>
   );
 }
@@ -74,6 +79,8 @@ function SmallStatCircle({ stat }: { stat: BloodTestStat }) {
   const maxVal = stat.label === "HDL" ? 100 : 300;
   const fraction = Math.min(stat.value / maxVal, 1);
   const dashOffset = CIRCUMFERENCE * (1 - fraction);
+  const isTrig = stat.label === "Triglycerides";
+  const dual = isTrig ? formatTriglyceridesDual(stat.value) : formatCholesterolDual(stat.value);
 
   return (
     <div className="flex flex-col items-center">
@@ -103,10 +110,11 @@ function SmallStatCircle({ stat }: { stat: BloodTestStat }) {
           <span className={`font-display font-bold text-sm sm:text-base tabular-nums ${colors.text}`}>
             {stat.value}
           </span>
+          <span className="text-[10px] text-mute leading-tight">{dual.au}</span>
         </div>
       </div>
       <span className="font-display text-xs font-medium text-ink mt-1">{stat.label}</span>
-      <span className="text-[10px] text-mute">{stat.optimalRange}</span>
+      <span className="text-[10px] text-mute">{stat.optimalRange} (US)</span>
     </div>
   );
 }
@@ -150,11 +158,14 @@ export function BloodTestSection() {
           </div>
         </div>
 
-        <div className="mt-6 pt-6 border-t border-black/10 dark:border-white/10 flex flex-wrap gap-4 text-xs text-mute">
-          <span><strong className="text-ink">Total cholesterol:</strong> &lt; 200 mg/dL optimal</span>
-          <span><strong className="text-ink">LDL:</strong> &lt; 100 optimal</span>
-          <span><strong className="text-ink">HDL:</strong> ≥ 60 optimal (higher is better)</span>
-          <span><strong className="text-ink">Triglycerides:</strong> &lt; 150 optimal</span>
+        <div className="mt-6 pt-6 border-t border-black/10 dark:border-white/10 space-y-2 text-xs text-mute">
+          <p className="font-medium text-ink">Reference (US · AU)</p>
+          <div className="flex flex-wrap gap-x-6 gap-y-1">
+            <span><strong className="text-ink">Total cholesterol:</strong> &lt; 200 mg/dL · &lt; 5.2 mmol/L optimal</span>
+            <span><strong className="text-ink">LDL:</strong> &lt; 100 mg/dL · &lt; 2.6 mmol/L optimal</span>
+            <span><strong className="text-ink">HDL:</strong> ≥ 60 mg/dL · ≥ 1.6 mmol/L optimal (higher is better)</span>
+            <span><strong className="text-ink">Triglycerides:</strong> &lt; 150 mg/dL · &lt; 1.7 mmol/L optimal</span>
+          </div>
         </div>
       </div>
     </section>
