@@ -135,13 +135,10 @@ async function main() {
     console.log("Exporting Food & recipe entries...");
     // Try: any clickable (button/link) containing "Food" and "Recipe" or "recipe entries"
     const foodSelectors = [
-      () => page.getByRole("button", { name: /export/i }).nth(1),
-      () => page.getByRole("button", { name: /food|recipe entries/i }).first(),
-      () => page.getByRole("link", { name: /food|recipe entries/i }).first(),
-      () => page.locator("button, a[href]").filter({ hasText: /food.*recipe|recipe.*entries/i }).first(),
-      () => page.getByText(/food.*recipe.*entries/i).first(),
-      () => page.getByText(/export food|food & recipe/i).first(),
-      () => page.locator("[role='button'], button, a").filter({ hasText: /food/i }).filter({ hasText: /recipe|entries/i }).first(),
+      () => page.getByRole("button", { name: /Food & Recipe Entries/i }).first(),
+      () => page.getByRole("button", { name: /food.*recipe/i }).first(),
+      () => page.locator("button").filter({ hasText: /food.*recipe/i }).first(),
+      () => page.getByText(/export food.*recipe/i).first(),
     ];
     let foodBtn = null;
     for (const getLocator of foodSelectors) {
