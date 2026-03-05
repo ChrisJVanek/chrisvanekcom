@@ -50,9 +50,10 @@ function parseServingsCsv(csvPath) {
     skip_empty_lines: true,
     relax_column_count: true,
   });
+  const YYYYMMDD = /^\d{4}-\d{2}-\d{2}$/;
   return rows
     .map((r) => ({
-      day: r["Day"] ?? "",
+      day: (r["Day"] ?? "").trim(),
       time: r["Time"] ?? "",
       group: r["Group"] ?? "",
       foodName: r["Food Name"] ?? "",
@@ -60,7 +61,7 @@ function parseServingsCsv(csvPath) {
       energyKcal: num(r["Energy (kcal)"]),
       category: r["Category"] ?? "",
     }))
-    .filter((r) => r.foodName || r.energyKcal > 0);
+    .filter((r) => (r.foodName || r.energyKcal > 0) && YYYYMMDD.test(r.day));
 }
 
 /** Parse exercises CSV; aggregate by date. Returns [{ date, minutes, caloriesBurned }]. */

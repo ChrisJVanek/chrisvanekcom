@@ -13,9 +13,12 @@ import { BloodTestSection } from "@/components/BloodTestSection";
 import { ExpandableFoodLog } from "@/components/ExpandableFoodLog";
 import { formatDateInSiteTz, formatDateTimeInSiteTz } from "@/lib/site";
 
+const VALID_DAY = /^\d{4}-\d{2}-\d{2}$/;
+
 function servingsByDay(servings: CronometerServing[]): Map<string, CronometerServing[]> {
   const byDay = new Map<string, CronometerServing[]>();
   for (const s of servings) {
+    if (!s.day || !VALID_DAY.test(s.day)) continue;
     const list = byDay.get(s.day) ?? [];
     list.push(s);
     byDay.set(s.day, list);
@@ -119,8 +122,9 @@ export default async function HealthPage() {
     getCronometerUpdatedAt(),
     getCronometerActivity(),
   ]);
-  const hasCronometer = cronometerDays.length > 0 || cronometerServings.length > 0;
-  const servingsByDayMap = servingsByDay(cronometerServings);
+  const validServings = cronometerServings.filter((s) => s.day && VALID_DAY.test(s.day));
+  const hasCronometer = cronometerDays.length > 0 || validServings.length > 0;
+  const servingsByDayMap = servingsByDay(validServings);
   const caloriesActivityRows = getCaloriesAndActivityRows(
     cronometerDays,
     healthData.activity,
@@ -225,7 +229,7 @@ export default async function HealthPage() {
                 <h2 className="font-display text-sm font-medium uppercase tracking-widest text-mute mb-4">
                   Food log
                 </h2>
-                <ExpandableFoodLog servings={cronometerServings} />
+                <ExpandableFoodLog servings={validServings} />
               </div>
             </div>
             {cronometerUpdatedAt && (
