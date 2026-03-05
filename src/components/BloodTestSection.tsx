@@ -4,6 +4,7 @@ import {
   CHOLESTEROL_TOTAL,
   BLOOD_TEST_STATS,
   BLOOD_TEST_REPORT_PDF,
+  BLOOD_TEST_DATE,
   formatCholesterolDual,
   formatTriglyceridesDual,
   type BloodTestStat,
@@ -124,9 +125,18 @@ export function BloodTestSection() {
     <section className="mb-12 rounded-2xl border border-black/10 dark:border-white/10 overflow-hidden bg-gradient-to-b from-black/[0.02] to-transparent dark:from-white/[0.03] dark:to-transparent">
       <div className="p-6 sm:p-8">
         <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
-          <h2 className="font-display text-lg font-semibold tracking-tight text-ink">
-            Blood test
-          </h2>
+          <div>
+            <h2 className="font-display text-lg font-semibold tracking-tight text-ink">
+              Blood test
+            </h2>
+            <p className="text-sm text-mute mt-0.5">
+              {new Date(BLOOD_TEST_DATE + "Z").toLocaleDateString("en-AU", {
+                day: "numeric",
+                month: "long",
+                year: "numeric",
+              })}
+            </p>
+          </div>
           <a
             href={BLOOD_TEST_REPORT_PDF}
             target="_blank"

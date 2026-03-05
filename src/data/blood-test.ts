@@ -42,13 +42,16 @@ export interface BloodTestStat {
   lowerIsBetter: boolean;
 }
 
+/** Report date (ISO) for display. Latest: 05/03/2026, Imedical 348744. */
+export const BLOOD_TEST_DATE = "2026-03-05";
+
 /**
- * From report 07/01/2026 (Imedical 315603). Values from PDF in mmol/L, stored here in mg/dL.
- * PDF: Total 6.5, LDL 4.60, HDL 1.26, Trig 1.4 mmol/L.
+ * From report 05/03/2026 (Imedical 348744). Values from PDF in mmol/L, stored here in mg/dL.
+ * PDF: Total 6.7, LDL 5.07, HDL 1.18, Trig 1.0 mmol/L.
  */
 export const CHOLESTEROL_TOTAL: BloodTestStat = {
   label: "Total cholesterol",
-  value: 251, // 6.5 mmol/L
+  value: 259, // 6.7 mmol/L
   unit: "mg/dL",
   status: "above",
   optimalRange: "< 200",
@@ -58,7 +61,7 @@ export const CHOLESTEROL_TOTAL: BloodTestStat = {
 export const BLOOD_TEST_STATS: BloodTestStat[] = [
   {
     label: "LDL",
-    value: 178, // 4.60 mmol/L
+    value: 196, // 5.07 mmol/L
     unit: "mg/dL",
     status: "above",
     optimalRange: "< 100",
@@ -66,7 +69,7 @@ export const BLOOD_TEST_STATS: BloodTestStat[] = [
   },
   {
     label: "HDL",
-    value: 49, // 1.26 mmol/L
+    value: 46, // 1.18 mmol/L
     unit: "mg/dL",
     status: "moderate",
     optimalRange: "≥ 60",
@@ -74,7 +77,7 @@ export const BLOOD_TEST_STATS: BloodTestStat[] = [
   },
   {
     label: "Triglycerides",
-    value: 124, // 1.4 mmol/L
+    value: 89, // 1.0 mmol/L
     unit: "mg/dL",
     status: "optimal",
     optimalRange: "< 150",
