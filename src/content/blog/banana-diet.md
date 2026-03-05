@@ -92,4 +92,6 @@ So to recap: I started this diet to look like a Vampire Diaries character, and I
 
 I stopped the banana diet the day after the dentist visit. Six weeks in total. I did lose about 3kg, which I gained back within two weeks of eating normally again. My teeth remain sensitive to this day. The coworker from the bathroom still avoids eye contact. And I've never looked at a banana the same way since.
 
+I went straight to the doctor afterward. I was well familiar with the old prostate exam—I've got a bit of a history of prostatitis—so I knew the drill. This time the doctor looks behind me and just winces. "Oh damn." He says, from somewhere behind my shoulder, "I can't put my finger there mate, it's a mess. You need a lot of creams and lying on your side." So that was that. Lots of creams. Lots of lying on my side.
+
 If there's a lesson here, it's this: if a diet sounds too simple to be true, it probably is. And if you absolutely must try eating nothing but one food for weeks on end, at least make sure they're ripe.
