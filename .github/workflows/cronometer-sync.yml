@@ -1,13 +1,16 @@
-# Run Cronometer export + merge daily. Data is written to PostgreSQL when
+# Run Cronometer export + merge. Data is written to PostgreSQL when
 # DATABASE_URL secret is set; the site reads from the same DB on /health.
-# Site timezone is GMT+10. 00:00 UTC and 14:00 UTC (= midnight GMT+10).
+# Sync runs every 6h so today's food can appear same day. Export uses
+# "Last 14/30 days" so the current day is included.
 # Add repo secrets: CRONOMETER_EMAIL, CRONOMETER_PASSWORD, DATABASE_URL.
 name: Cronometer sync
 
 on:
   schedule:
     - cron: "0 0 * * *"
-    - cron: "0 14 * * *"
+    - cron: "0 6 * * *"
+    - cron: "0 12 * * *"
+    - cron: "0 18 * * *"
   workflow_dispatch:
 
 jobs:

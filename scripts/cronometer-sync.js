@@ -100,17 +100,41 @@ async function main() {
     await page.getByRole("button", { name: /export data/i }).first().click({ timeout: 10000 });
     await page.waitForTimeout(2000);
 
-    // Set date range to last 7 days if visible
-    try {
-      const last7 = page.getByRole("button", { name: /last 7|7 days/i }).first();
-      await last7.click({ timeout: 5000 });
-      await page.waitForTimeout(1000);
-    } catch {
+    // Set date range so it includes today (many "Last 7 days" presets exclude current day).
+    // Prefer "Last 14 days" or "Last 30 days" so today is in range, then fall back to "Last 7 days".
+    const dateRangeOrder = [/last 30|30 days/i, /last 14|14 days/i, /last 7|7 days/i];
+    let dateRangeSet = false;
+    for (const pattern of dateRangeOrder) {
       try {
-        await page.getByText(/last 7 days|past 7 days/i).first().click({ timeout: 3000 });
+        const btn = page.getByRole("button", { name: pattern }).first();
+        await btn.click({ timeout: 3000 });
+        await page.waitForTimeout(1000);
+        dateRangeSet = true;
+        break;
+      } catch {
+        try {
+          const text = page.getByText(pattern).first();
+          await text.click({ timeout: 2000 });
+          await page.waitForTimeout(1000);
+          dateRangeSet = true;
+          break;
+        } catch {
+          continue;
+        }
+      }
+    }
+    if (!dateRangeSet) {
+      try {
+        const last7 = page.getByRole("button", { name: /last 7|7 days/i }).first();
+        await last7.click({ timeout: 5000 });
         await page.waitForTimeout(1000);
       } catch {
-        // continue without changing date range
+        try {
+          await page.getByText(/last 7 days|past 7 days/i).first().click({ timeout: 3000 });
+          await page.waitForTimeout(1000);
+        } catch {
+          // continue without changing date range
+        }
       }
     }
 
