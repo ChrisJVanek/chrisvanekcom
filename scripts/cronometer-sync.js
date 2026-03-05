@@ -39,6 +39,8 @@ async function main() {
   const page = await context.newPage();
   page.setDefaultTimeout(30000);
 
+  const todayPaths = { daily: null, servings: null, exercises: null };
+
   try {
     console.log("Logging in...");
     await page.goto(LOGIN_URL, { waitUntil: "domcontentloaded", timeout: 30000 });
@@ -228,6 +230,75 @@ async function main() {
     } else {
       console.log("Export Exercises button not found; skipping exercises.");
     }
+
+    // Export "Today" as well and save to temp files; we merge when writing to DB
+    const todaySelectors = [
+      () => page.getByRole("button", { name: /today/i }).first(),
+      () => page.getByText(/today/i).first(),
+    ];
+    let todayBtn = null;
+    for (const getLoc of todaySelectors) {
+      try {
+        const loc = getLoc();
+        await loc.waitFor({ state: "visible", timeout: 3000 });
+        todayBtn = loc;
+        break;
+      } catch {
+        continue;
+      }
+    }
+    if (todayBtn) {
+      console.log("Exporting Today and merging with 7-day data...");
+      await page.getByRole("button", { name: /export data/i }).first().click({ timeout: 10000 });
+      await page.waitForTimeout(2500);
+      await todayBtn.click({ timeout: 5000 });
+      await page.waitForTimeout(1000);
+
+      const dailyBtnToday = page.getByRole("button", { name: /export daily nutrition|daily nutrition/i }).first();
+      const [dlDaily] = await Promise.all([
+        page.waitForEvent("download", { timeout: 20000 }),
+        dailyBtnToday.click({ timeout: 10000 }),
+      ]);
+      let p = await dlDaily.path();
+      if (p && fs.existsSync(p)) {
+        todayPaths.daily = p;
+        console.log("Saved today daily export");
+      }
+      await page.waitForTimeout(2000);
+
+      await page.getByRole("button", { name: /export data/i }).first().click({ timeout: 10000 });
+      await page.waitForTimeout(2500);
+      await page.getByRole("button", { name: /today/i }).first().click({ timeout: 3000 }).catch(() => {});
+      await page.waitForTimeout(1000);
+      const foodBtnToday = page.getByRole("button", { name: /Food & Recipe Entries/i }).first();
+      const [dlFood] = await Promise.all([
+        page.waitForEvent("download", { timeout: 60000 }),
+        foodBtnToday.click({ timeout: 15000, force: true }),
+      ]);
+      p = await dlFood.path();
+      if (p && fs.existsSync(p)) {
+        todayPaths.servings = p;
+        console.log("Saved today servings export");
+      }
+      await page.waitForTimeout(2000);
+
+      await page.getByRole("button", { name: /export data/i }).first().click({ timeout: 10000 });
+      await page.waitForTimeout(2500);
+      await page.getByRole("button", { name: /today/i }).first().click({ timeout: 3000 }).catch(() => {});
+      await page.waitForTimeout(1000);
+      const exBtnToday = page.getByRole("button", { name: /Export Exercises/i }).first();
+      const [dlEx] = await Promise.all([
+        page.waitForEvent("download", { timeout: 30000 }),
+        exBtnToday.click({ timeout: 10000, force: true }),
+      ]).catch(() => [null]);
+      p = dlEx && (await dlEx.path());
+      if (p && fs.existsSync(p)) {
+        todayPaths.exercises = p;
+        console.log("Saved today exercises export");
+      }
+    } else {
+      console.log("'Today' date range not found; skipping today export.");
+    }
   } catch (err) {
     console.error("Sync error:", err.message);
     process.exit(1);
@@ -247,9 +318,21 @@ async function main() {
       mergeExercises,
     } = require("./merge-cronometer-data.js");
     const { getCronometerFromDb, writeCronometerToDb } = require("./cronometer-db-write.js");
-    const incomingDaily = parseDailyCsv(path.join(DATA_DIR, "dailysummary.csv"));
-    const incomingServings = parseServingsCsv(path.join(DATA_DIR, "servings.csv"));
-    const incomingExercises = parseExercisesCsv(path.join(DATA_DIR, "exercises.csv"));
+    let incomingDaily = parseDailyCsv(path.join(DATA_DIR, "dailysummary.csv"));
+    let incomingServings = parseServingsCsv(path.join(DATA_DIR, "servings.csv"));
+    let incomingExercises = parseExercisesCsv(path.join(DATA_DIR, "exercises.csv"));
+    if (todayPaths.daily) {
+      const todayDaily = parseDailyCsv(todayPaths.daily);
+      incomingDaily = mergeDaily(incomingDaily, todayDaily);
+    }
+    if (todayPaths.servings) {
+      const todayServings = parseServingsCsv(todayPaths.servings);
+      incomingServings = mergeServings(incomingServings, todayServings);
+    }
+    if (todayPaths.exercises) {
+      const todayExercises = parseExercisesCsv(todayPaths.exercises);
+      incomingExercises = mergeExercises(incomingExercises, todayExercises);
+    }
     const existing = await getCronometerFromDb();
     const mergedDaily = mergeDaily(existing.mergedDaily, incomingDaily);
     const mergedServings = mergeServings(existing.mergedServings, incomingServings);
