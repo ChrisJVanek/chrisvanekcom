@@ -159,9 +159,16 @@ export default async function HealthPage() {
           <div className="space-y-6">
             <div>
               <h3 className="font-display font-semibold text-ink mb-1">Hair loss — NOVAMANE</h3>
-              <p className="text-sm text-mute leading-relaxed">
-                Have begun a hair loss protocol called NOVAMANE, aiming to explore topical solutions for minoxidil as well.
+              <p className="text-sm text-mute leading-relaxed mb-2">
+                Micro-infusion protocol (copper peptides, serum via stamp). Started 1 March 2026. Brief summary from{" "}
+                <a href="https://novamane.com/pages/instructions" target="_blank" rel="noopener noreferrer" className="text-ink underline hover:no-underline">NovaMane instructions</a>.
               </p>
+              <ul className="text-sm text-mute list-disc list-inside space-y-1">
+                <li><strong className="text-ink">Shampoo</strong> — Wash with sulfate-free shampoo (e.g. Regen™), pat scalp dry, wait 10–15 min so scalp is fully dry before treatment.</li>
+                <li><strong className="text-ink">Dry needling</strong> — Stamp/roll in multiple directions (vertical, horizontal, diagonal), 4–6 passes per section, firm pressure. Creates micro-channels for serum.</li>
+                <li><strong className="text-ink">Serum stamping</strong> — ~0.5 ml serum per session. Prime device on a tissue, then stamp scalp in a grid with 25–50% overlap, 2–3 rounds as tolerated. Don’t rinse for 8–12 hours.</li>
+                <li><strong className="text-ink">Schedule</strong> — Week 1: once (test tolerance). Week 2: twice with a rest day. Week 3+: every other day. Evening application for overnight absorption. Sanitize needle head after each use (70% isopropyl 10 min); replace cartridge every 3–5 treatments (max 15).</li>
+              </ul>
             </div>
             <div>
               <h3 className="font-display font-semibold text-ink mb-2">Daily cholesterol protocol</h3>
