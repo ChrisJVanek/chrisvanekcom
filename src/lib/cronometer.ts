@@ -35,68 +35,81 @@ function num(val: string | undefined): number {
 }
 
 function getDailyFromFiles(): CronometerDailySummary[] {
+  const fromCsv = (): CronometerDailySummary[] => {
+    const file = path.join(dataDir, "dailysummary.csv");
+    if (!fs.existsSync(file)) return [];
+    const raw = fs.readFileSync(file, "utf-8");
+    const rows = parse(raw, {
+      columns: true,
+      skip_empty_lines: true,
+      relax_column_count: true,
+    }) as Record<string, string>[];
+    return rows
+      .map((r) => ({
+        date: r["Date"] ?? "",
+        energyKcal: num(r["Energy (kcal)"]),
+        carbsG: num(r["Carbs (g)"]),
+        fatG: num(r["Fat (g)"]),
+        proteinG: num(r["Protein (g)"]),
+        fiberG: num(r["Fiber (g)"]),
+        sodiumMg: num(r["Sodium (mg)"]),
+      }))
+      .filter((r) => r.date)
+      .sort((a, b) => (b.date > a.date ? 1 : -1));
+  };
   if (fs.existsSync(dailyJsonPath)) {
     try {
       const data = JSON.parse(fs.readFileSync(dailyJsonPath, "utf-8")) as CronometerDailySummary[];
-      return Array.isArray(data) ? data : [];
+      const fromJson = Array.isArray(data) ? data : [];
+      const csvRows = fromCsv();
+      // Prefer CSV when it has more days (e.g. repo has fresh export, JSON is stale)
+      if (csvRows.length > fromJson.length) return csvRows;
+      if (fromJson.length > 0) return fromJson;
     } catch {
       // fall through to CSV
     }
   }
-  const file = path.join(dataDir, "dailysummary.csv");
-  if (!fs.existsSync(file)) return [];
-  const raw = fs.readFileSync(file, "utf-8");
-  const rows = parse(raw, {
-    columns: true,
-    skip_empty_lines: true,
-    relax_column_count: true,
-  }) as Record<string, string>[];
-  return rows
-    .map((r) => ({
-      date: r["Date"] ?? "",
-      energyKcal: num(r["Energy (kcal)"]),
-      carbsG: num(r["Carbs (g)"]),
-      fatG: num(r["Fat (g)"]),
-      proteinG: num(r["Protein (g)"]),
-      fiberG: num(r["Fiber (g)"]),
-      sodiumMg: num(r["Sodium (mg)"]),
-    }))
-    .filter((r) => r.date)
-    .sort((a, b) => (b.date > a.date ? 1 : -1));
+  return fromCsv();
 }
 
 function getServingsFromFiles(): CronometerServing[] {
+  const fromCsv = (): CronometerServing[] => {
+    const file = path.join(dataDir, "servings.csv");
+    if (!fs.existsSync(file)) return [];
+    const raw = fs.readFileSync(file, "utf-8");
+    const rows = parse(raw, {
+      columns: true,
+      skip_empty_lines: true,
+      relax_column_count: true,
+    }) as Record<string, string>[];
+    return rows
+      .map((r) => ({
+        day: r["Day"] ?? "",
+        time: r["Time"] ?? "",
+        group: r["Group"] ?? "",
+        foodName: r["Food Name"] ?? "",
+        amount: r["Amount"] ?? "",
+        energyKcal: num(r["Energy (kcal)"]),
+        category: r["Category"] ?? "",
+      }))
+      .filter((r) => r.foodName || r.energyKcal > 0)
+      .sort((a, b) => {
+        if (a.day !== b.day) return b.day > a.day ? 1 : -1;
+        return (b.time || "").localeCompare(a.time || "");
+      });
+  };
   if (fs.existsSync(servingsJsonPath)) {
     try {
       const data = JSON.parse(fs.readFileSync(servingsJsonPath, "utf-8")) as CronometerServing[];
-      return Array.isArray(data) ? data : [];
+      const fromJson = Array.isArray(data) ? data : [];
+      const csvRows = fromCsv();
+      if (csvRows.length > fromJson.length) return csvRows;
+      if (fromJson.length > 0) return fromJson;
     } catch {
       // fall through
     }
   }
-  const file = path.join(dataDir, "servings.csv");
-  if (!fs.existsSync(file)) return [];
-  const raw = fs.readFileSync(file, "utf-8");
-  const rows = parse(raw, {
-    columns: true,
-    skip_empty_lines: true,
-    relax_column_count: true,
-  }) as Record<string, string>[];
-  return rows
-    .map((r) => ({
-      day: r["Day"] ?? "",
-      time: r["Time"] ?? "",
-      group: r["Group"] ?? "",
-      foodName: r["Food Name"] ?? "",
-      amount: r["Amount"] ?? "",
-      energyKcal: num(r["Energy (kcal)"]),
-      category: r["Category"] ?? "",
-    }))
-    .filter((r) => r.foodName || r.energyKcal > 0)
-    .sort((a, b) => {
-      if (a.day !== b.day) return b.day > a.day ? 1 : -1;
-      return (b.time || "").localeCompare(a.time || "");
-    });
+  return fromCsv();
 }
 
 /** Cronometer daily summaries: from DB when DATABASE_URL is set, else from files. */
