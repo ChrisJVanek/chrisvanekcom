@@ -6,6 +6,18 @@
 
 export const BLOOD_TEST_REPORT_PDF = "/health/blood-test-report.pdf";
 
+/** Historical reports (newest first). Add PDFs to public/health/ and list here. */
+export interface BloodTestHistoryEntry {
+  date: string; // ISO YYYY-MM-DD
+  pdfPath: string;
+  label?: string; // e.g. lab number
+}
+
+export const BLOOD_TEST_HISTORY: BloodTestHistoryEntry[] = [
+  { date: "2026-03-05", pdfPath: "/health/blood-test-report.pdf", label: "Imedical 348744" },
+  { date: "2026-01-07", pdfPath: "/health/blood-test-2026-01-07.pdf", label: "Imedical 315603" },
+];
+
 /** Cholesterol (total, LDL, HDL): mg/dL → mmol/L */
 export function mgDlToMmolCholesterol(mgDl: number): number {
   return mgDl / 38.67;

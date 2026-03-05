@@ -5,6 +5,7 @@ import {
   BLOOD_TEST_STATS,
   BLOOD_TEST_REPORT_PDF,
   BLOOD_TEST_DATE,
+  BLOOD_TEST_HISTORY,
   formatCholesterolDual,
   formatTriglyceridesDual,
   type BloodTestStat,
@@ -177,6 +178,37 @@ export function BloodTestSection() {
             <span><strong className="text-ink">Triglycerides:</strong> &lt; 150 mg/dL · &lt; 1.7 mmol/L optimal</span>
           </div>
         </div>
+
+        {BLOOD_TEST_HISTORY.length > 0 && (
+          <div className="mt-6 pt-6 border-t border-black/10 dark:border-white/10">
+            <p className="font-medium text-ink text-sm mb-2">Blood test history</p>
+            <p className="text-xs text-mute mb-3">Download past reports to compare results over time.</p>
+            <ul className="space-y-2">
+              {BLOOD_TEST_HISTORY.map((entry) => (
+                <li key={entry.date} className="flex flex-wrap items-center justify-between gap-2 text-sm">
+                  <span className="text-ink">
+                    {new Date(entry.date + "Z").toLocaleDateString("en-AU", {
+                      day: "numeric",
+                      month: "long",
+                      year: "numeric",
+                    })}
+                    {entry.label && (
+                      <span className="text-mute font-normal ml-1">({entry.label})</span>
+                    )}
+                  </span>
+                  <a
+                    href={entry.pdfPath}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 rounded-md bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/20 px-2 py-1 text-xs font-medium text-ink transition-colors"
+                  >
+                    Download PDF
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
     </section>
   );
