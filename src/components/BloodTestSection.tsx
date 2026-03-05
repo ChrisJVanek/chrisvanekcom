@@ -148,8 +148,20 @@ export function BloodTestSection() {
           </a>
         </div>
 
-        <p className="text-sm text-mute mb-6">
+        <p className="text-sm text-mute mb-2">
           Get total cholesterol down to a healthy level. Green = optimal, amber = moderate, red = above target.
+        </p>
+        <p className="text-sm text-mute mb-6">
+          I have{" "}
+          <a
+            href="https://sequencing.com/education-center/medical/familial-hypercholesterolemia"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-ink underline hover:no-underline"
+          >
+            familial hypercholesterolemia
+          </a>
+          , identified by genetic testing via Sequencing.com.
         </p>
 
         <div className="flex flex-col sm:flex-row sm:items-start gap-8 sm:gap-10">
