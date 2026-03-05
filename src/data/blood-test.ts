@@ -42,10 +42,13 @@ export interface BloodTestStat {
   lowerIsBetter: boolean;
 }
 
-/** Headline stat – get total cholesterol down to healthy level (< 200 mg/dL). */
+/**
+ * From report 07/01/2026 (Imedical 315603). Values from PDF in mmol/L, stored here in mg/dL.
+ * PDF: Total 6.5, LDL 4.60, HDL 1.26, Trig 1.4 mmol/L.
+ */
 export const CHOLESTEROL_TOTAL: BloodTestStat = {
   label: "Total cholesterol",
-  value: 220,
+  value: 251, // 6.5 mmol/L
   unit: "mg/dL",
   status: "above",
   optimalRange: "< 200",
@@ -55,7 +58,7 @@ export const CHOLESTEROL_TOTAL: BloodTestStat = {
 export const BLOOD_TEST_STATS: BloodTestStat[] = [
   {
     label: "LDL",
-    value: 140,
+    value: 178, // 4.60 mmol/L
     unit: "mg/dL",
     status: "above",
     optimalRange: "< 100",
@@ -63,7 +66,7 @@ export const BLOOD_TEST_STATS: BloodTestStat[] = [
   },
   {
     label: "HDL",
-    value: 48,
+    value: 49, // 1.26 mmol/L
     unit: "mg/dL",
     status: "moderate",
     optimalRange: "≥ 60",
@@ -71,9 +74,9 @@ export const BLOOD_TEST_STATS: BloodTestStat[] = [
   },
   {
     label: "Triglycerides",
-    value: 165,
+    value: 124, // 1.4 mmol/L
     unit: "mg/dL",
-    status: "above",
+    status: "optimal",
     optimalRange: "< 150",
     lowerIsBetter: true,
   },
