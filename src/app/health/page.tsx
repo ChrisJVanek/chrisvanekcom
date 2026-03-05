@@ -164,16 +164,30 @@ export default async function HealthPage() {
               </p>
             </div>
             <div>
-              <h3 className="font-display font-semibold text-ink mb-1">Cholesterol</h3>
-              <p className="text-sm text-mute leading-relaxed mb-2">
-                Currently taking:
+              <h3 className="font-display font-semibold text-ink mb-2">Daily cholesterol protocol</h3>
+              <p className="text-sm text-mute leading-relaxed mb-3">
+                Multi-mechanism protocol. Expected LDL reduction ~40–55% if consistent (8–12 weeks). Starting LDL ≈ 5.3 mmol/L → target ~2.4–3.2 mmol/L.
               </p>
-              <ul className="text-sm text-mute list-disc list-inside space-y-0.5">
-                <li>Citrus Bergamot</li>
-                <li>Red Yeast Rice 600mg</li>
-                <li>Triple Strength Fish Oil</li>
-                <li>Vitamin D</li>
-              </ul>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm text-mute border-collapse">
+                  <thead>
+                    <tr className="border-b border-black/10 dark:border-white/10">
+                      <th className="text-left py-2 pr-4 font-medium text-ink">Time</th>
+                      <th className="text-left py-2 font-medium text-ink">Supplement</th>
+                    </tr>
+                  </thead>
+                  <tbody className="[&_tr]:border-b [&_tr]:border-black/5 [&_tr]:dark:border-white/5">
+                    <tr><td className="py-2 pr-4">Morning, 20–30 min before breakfast</td><td>Psyllium husk 5 g powder or ~7 caps + 400–500 ml water (binds bile acids)</td></tr>
+                    <tr><td className="py-2 pr-4">With breakfast (with some fat)</td><td>Plant sterols ~1 g · Citrus bergamot 500 mg · Berberine 500 mg</td></tr>
+                    <tr><td className="py-2 pr-4">20–30 min before dinner</td><td>Psyllium husk 5 g or ~7 caps + large glass water</td></tr>
+                    <tr><td className="py-2 pr-4">With dinner</td><td>Plant sterols ~1 g · Citrus bergamot 500 mg · Berberine 500 mg · CoQ10 100–200 mg (optional, recommended with RYR)</td></tr>
+                    <tr><td className="py-2 pr-4">Night (before bed)</td><td>Red yeast rice 1200 mg total daily (or 600 mg if higher-strength caps). Cholesterol synthesis peaks overnight.</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <p className="text-xs text-mute mt-3">
+                Mechanisms: RYR → reduce production; Berberine → LDL receptor clearance; Bergamot → lipid metabolism; Sterols → block absorption; Psyllium → bile excretion.
+              </p>
             </div>
           </div>
         </div>
