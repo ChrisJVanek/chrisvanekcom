@@ -158,6 +158,27 @@ export async function getCronometerServings(): Promise<CronometerServing[]> {
   return getServingsFromFiles();
 }
 
+/** Cronometer exercise minutes (and optional calories burned) by date; from DB when DATABASE_URL is set. */
+export async function getCronometerActivity(): Promise<
+  Array<{ date: string; minutes: number; caloriesBurned?: number }>
+> {
+  if (process.env.DATABASE_URL) {
+    try {
+      const rows = await prisma.cronometerExercise.findMany({
+        orderBy: { date: "desc" },
+      });
+      return rows.map((r) => ({
+        date: r.date,
+        minutes: r.minutes,
+        caloriesBurned: r.caloriesBurned ?? undefined,
+      }));
+    } catch {
+      return [];
+    }
+  }
+  return [];
+}
+
 /** ISO string when Cronometer data was last updated (DB meta or file). */
 export async function getCronometerUpdatedAt(): Promise<string | null> {
   if (process.env.DATABASE_URL) {

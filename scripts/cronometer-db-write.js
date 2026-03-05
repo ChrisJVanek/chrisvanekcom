@@ -14,9 +14,10 @@ const prisma = new PrismaClient();
 async function getCronometerFromDb() {
   await prisma.$connect();
   try {
-    const [dailyRows, servingRows] = await Promise.all([
+    const [dailyRows, servingRows, exerciseRows] = await Promise.all([
       prisma.cronometerDaily.findMany({ orderBy: { date: "desc" } }),
       prisma.cronometerServing.findMany({ orderBy: [{ day: "desc" }, { time: "desc" }] }),
+      prisma.cronometerExercise.findMany({ orderBy: { date: "desc" } }).catch(() => []),
     ]);
     const mergedDaily = dailyRows.map((r) => ({
       date: r.date,
@@ -36,17 +37,25 @@ async function getCronometerFromDb() {
       energyKcal: r.energyKcal,
       category: r.category || "",
     }));
-    return { mergedDaily, mergedServings };
+    const mergedExercises = Array.isArray(exerciseRows)
+      ? exerciseRows.map((r) => ({
+          date: r.date,
+          minutes: r.minutes,
+          caloriesBurned: r.caloriesBurned ?? 0,
+        }))
+      : [];
+    return { mergedDaily, mergedServings, mergedExercises };
   } finally {
     await prisma.$disconnect();
   }
 }
 
 /**
- * @param {Array<{ date: string, energyKcal: number, carbsG: number, fatG: number, proteinG: number, fiberG: number, sodiumMg: number }>} mergedDaily
- * @param {Array<{ day: string, time: string, group: string, foodName: string, amount: string, energyKcal: number, category: string }>} mergedServings
+ * @param {Array<{ date: string, energyKcal: number, ... }>} mergedDaily
+ * @param {Array<{ day: string, time: string, foodName: string, ... }>} mergedServings
+ * @param {Array<{ date: string, minutes: number, caloriesBurned?: number }>} mergedExercises
  */
-async function writeCronometerToDb(mergedDaily, mergedServings) {
+async function writeCronometerToDb(mergedDaily, mergedServings, mergedExercises = []) {
   await prisma.$connect();
 
   try {
@@ -94,6 +103,21 @@ async function writeCronometerToDb(mergedDaily, mergedServings) {
       });
     }
 
+    for (const row of mergedExercises) {
+      await prisma.cronometerExercise.upsert({
+        where: { date: row.date },
+        create: {
+          date: row.date,
+          minutes: row.minutes,
+          caloriesBurned: row.caloriesBurned ?? null,
+        },
+        update: {
+          minutes: row.minutes,
+          caloriesBurned: row.caloriesBurned ?? null,
+        },
+      });
+    }
+
     const now = new Date().toISOString();
     await prisma.cronometerMeta.upsert({
       where: { key: "updatedAt" },
@@ -101,7 +125,15 @@ async function writeCronometerToDb(mergedDaily, mergedServings) {
       update: { value: now },
     });
 
-    console.log("Written to database:", mergedDaily.length, "daily,", mergedServings.length, "servings.");
+    console.log(
+      "Written to database:",
+      mergedDaily.length,
+      "daily,",
+      mergedServings.length,
+      "servings,",
+      mergedExercises.length,
+      "exercise days."
+    );
   } finally {
     await prisma.$disconnect();
   }

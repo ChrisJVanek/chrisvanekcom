@@ -63,6 +63,38 @@ function parseServingsCsv(csvPath) {
     .filter((r) => r.foodName || r.energyKcal > 0);
 }
 
+/** Parse exercises CSV; aggregate by date. Returns [{ date, minutes, caloriesBurned }]. */
+function parseExercisesCsv(csvPath) {
+  if (!fs.existsSync(csvPath)) return [];
+  const raw = fs.readFileSync(csvPath, "utf-8");
+  const rows = parse(raw, {
+    columns: true,
+    skip_empty_lines: true,
+    relax_column_count: true,
+  });
+  const byDate = new Map();
+  for (const r of rows) {
+    const date = r["Day"] ?? r["Date"] ?? r["date"] ?? "";
+    if (!date) continue;
+    const minutes = num(r["Duration (min)"] ?? r["Duration"] ?? r["Minutes"] ?? r["minutes"] ?? 0);
+    const kcal = num(r["Energy (kcal)"] ?? r["Calories"] ?? r["calories"] ?? 0);
+    const existing = byDate.get(date) ?? { date, minutes: 0, caloriesBurned: 0 };
+    byDate.set(date, {
+      date,
+      minutes: existing.minutes + minutes,
+      caloriesBurned: existing.caloriesBurned + kcal,
+    });
+  }
+  return Array.from(byDate.values()).sort((a, b) => (b.date > a.date ? 1 : -1));
+}
+
+function mergeExercises(existing, incoming) {
+  const byDate = new Map();
+  for (const e of existing) byDate.set(e.date, { ...e });
+  for (const e of incoming) byDate.set(e.date, { date: e.date, minutes: e.minutes, caloriesBurned: e.caloriesBurned });
+  return Array.from(byDate.values()).sort((a, b) => (b.date > a.date ? 1 : -1));
+}
+
 function loadStored(path) {
   if (!fs.existsSync(path)) return [];
   try {
@@ -151,8 +183,10 @@ if (require.main === module) {
     run,
     parseDailyCsv,
     parseServingsCsv,
+    parseExercisesCsv,
     mergeDaily,
     mergeServings,
+    mergeExercises,
     dataDir,
   };
 }

@@ -36,3 +36,11 @@ model CronometerMeta {
   value     String
   updatedAt DateTime @updatedAt
 }
+
+model CronometerExercise {
+  id              String   @id @default(cuid())
+  date            String   @unique
+  minutes         Float
+  caloriesBurned  Float?
+  updatedAt       DateTime @updatedAt
+}

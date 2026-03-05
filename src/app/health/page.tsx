@@ -3,6 +3,7 @@ import {
   getCronometerDailySummaries,
   getCronometerServings,
   getCronometerUpdatedAt,
+  getCronometerActivity,
   type CronometerServing,
 } from "@/lib/cronometer";
 import { getHealthData } from "@/lib/health";
@@ -32,17 +33,68 @@ function formatUpdatedAt(iso: string | null | undefined): string {
   return formatDateTimeInSiteTz(iso);
 }
 
-/** Rows for calories (Cronometer) + activity (Apple Health only). No weight from Apple Health. */
+/** Rows for calories (Cronometer), activity (Apple Health + Cronometer exercises), steps, calories burned. */
 function getCaloriesAndActivityRows(
   cronometerDays: { date: string; energyKcal: number }[],
-  activityEntries: { date: string; minutes: number }[]
-): Array<{ date: string; consumed: number | null; activityMinutes: number | null }> {
-  const byDate = new Map<string, { consumed: number | null; activityMinutes: number | null }>();
+  activityEntries: { date: string; minutes: number }[],
+  cronometerActivity: Array<{ date: string; minutes: number; caloriesBurned?: number }>,
+  stepsEntries: Array<{ date: string; steps: number }>,
+  caloriesBurnedEntries: Array<{ date: string; kcal: number }>
+): Array<{
+  date: string;
+  consumed: number | null;
+  activityMinutes: number | null;
+  steps: number | null;
+  caloriesBurned: number | null;
+}> {
+  const byDate = new Map<
+    string,
+    { consumed: number | null; activityMinutes: number | null; steps: number | null; caloriesBurned: number | null }
+  >();
   for (const a of activityEntries) {
-    byDate.set(a.date, { consumed: null, activityMinutes: a.minutes });
+    byDate.set(a.date, { consumed: null, activityMinutes: a.minutes, steps: null, caloriesBurned: null });
+  }
+  for (const c of cronometerActivity) {
+    const existing = byDate.get(c.date) ?? {
+      consumed: null,
+      activityMinutes: null,
+      steps: null,
+      caloriesBurned: null,
+    };
+    const prevMin = existing.activityMinutes ?? 0;
+    const prevBurned = existing.caloriesBurned ?? 0;
+    byDate.set(c.date, {
+      ...existing,
+      activityMinutes: prevMin + c.minutes,
+      caloriesBurned: prevBurned + (c.caloriesBurned ?? 0),
+    });
+  }
+  for (const s of stepsEntries) {
+    const existing = byDate.get(s.date) ?? {
+      consumed: null,
+      activityMinutes: null,
+      steps: null,
+      caloriesBurned: null,
+    };
+    byDate.set(s.date, { ...existing, steps: s.steps });
+  }
+  for (const b of caloriesBurnedEntries) {
+    const existing = byDate.get(b.date) ?? {
+      consumed: null,
+      activityMinutes: null,
+      steps: null,
+      caloriesBurned: null,
+    };
+    const prev = existing.caloriesBurned ?? 0;
+    byDate.set(b.date, { ...existing, caloriesBurned: prev + b.kcal });
   }
   for (const d of cronometerDays) {
-    const existing = byDate.get(d.date) ?? { consumed: null, activityMinutes: null };
+    const existing = byDate.get(d.date) ?? {
+      consumed: null,
+      activityMinutes: null,
+      steps: null,
+      caloriesBurned: null,
+    };
     byDate.set(d.date, { ...existing, consumed: d.energyKcal });
   }
   return Array.from(byDate.entries())
@@ -54,14 +106,26 @@ const CALORIE_GOAL = 1500;
 
 export default async function HealthPage() {
   const healthData = getHealthData();
-  const [cronometerDays, cronometerServings, cronometerUpdatedAt] = await Promise.all([
+  const [
+    cronometerDays,
+    cronometerServings,
+    cronometerUpdatedAt,
+    cronometerActivity,
+  ] = await Promise.all([
     getCronometerDailySummaries(),
     getCronometerServings(),
     getCronometerUpdatedAt(),
+    getCronometerActivity(),
   ]);
   const hasCronometer = cronometerDays.length > 0 || cronometerServings.length > 0;
   const servingsByDayMap = servingsByDay(cronometerServings);
-  const caloriesActivityRows = getCaloriesAndActivityRows(cronometerDays, healthData.activity);
+  const caloriesActivityRows = getCaloriesAndActivityRows(
+    cronometerDays,
+    healthData.activity,
+    cronometerActivity,
+    healthData.steps ?? [],
+    healthData.caloriesBurned ?? []
+  );
   const hasActivitySection = caloriesActivityRows.length > 0;
 
   return (
@@ -156,7 +220,7 @@ export default async function HealthPage() {
             Calories & activity
           </h2>
           <p className="text-sm text-mute mb-4">
-            Calories from Cronometer; activity (exercise minutes) from Apple Health export only.
+            Calories from Cronometer; exercise minutes from Cronometer export and Apple Health; steps and calories burned from Apple Health export.
           </p>
           <div className="overflow-x-auto rounded-xl border border-black/10 dark:border-white/10">
             <table className="w-full text-left text-sm">
@@ -165,6 +229,8 @@ export default async function HealthPage() {
                   <th className="font-display font-medium text-ink py-3 px-4">Date</th>
                   <th className="font-display font-medium text-ink py-3 px-4">Calories</th>
                   <th className="font-display font-medium text-ink py-3 px-4">Activity</th>
+                  <th className="font-display font-medium text-ink py-3 px-4">Steps</th>
+                  <th className="font-display font-medium text-ink py-3 px-4">Burned</th>
                   <th className="font-display font-medium text-ink py-3 px-4">vs goal</th>
                 </tr>
               </thead>
@@ -185,6 +251,12 @@ export default async function HealthPage() {
                           : `${row.activityMinutes} min`
                         : "—"}
                     </td>
+                    <td className="py-3 px-4 text-ink tabular-nums">
+                      {row.steps != null ? row.steps.toLocaleString() : "—"}
+                    </td>
+                    <td className="py-3 px-4 text-ink tabular-nums">
+                      {row.caloriesBurned != null ? Math.round(row.caloriesBurned) : "—"}
+                    </td>
                     <td className="py-3 px-4">
                       {row.consumed != null ? (
                         row.consumed <= CALORIE_GOAL ? (
@@ -201,11 +273,15 @@ export default async function HealthPage() {
               </tbody>
             </table>
           </div>
-          {healthData.updatedAt && healthData.activity.length > 0 && (
-            <p className="text-xs text-mute mt-2">
-              Activity last updated: {formatUpdatedAt(healthData.updatedAt)}
-            </p>
-          )}
+          {healthData.updatedAt &&
+            (healthData.activity.length > 0 ||
+              (healthData.steps?.length ?? 0) > 0 ||
+              (healthData.caloriesBurned?.length ?? 0) > 0) && (
+              <p className="text-xs text-mute mt-2">
+                Activity / steps / calories burned last updated:{" "}
+                {formatUpdatedAt(healthData.updatedAt)}
+              </p>
+            )}
         </section>
       )}
 

@@ -166,6 +166,44 @@ async function main() {
       fs.copyFileSync(savePath, dest);
       console.log("Saved servings.csv");
     }
+    await page.waitForTimeout(2000);
+
+    console.log("Re-opening Export Data for exercises...");
+    await page.getByRole("button", { name: /export data/i }).first().click({ timeout: 10000 });
+    await page.waitForTimeout(2500);
+
+    console.log("Exporting Exercises...");
+    const exerciseSelectors = [
+      () => page.getByRole("button", { name: /Export Exercises/i }).first(),
+      () => page.getByRole("button", { name: /exercises/i }).first(),
+      () => page.locator("button").filter({ hasText: /export.*exercise/i }).first(),
+    ];
+    let exerciseBtn = null;
+    for (const getLocator of exerciseSelectors) {
+      try {
+        const loc = getLocator();
+        await loc.waitFor({ state: "visible", timeout: 8000 });
+        exerciseBtn = loc;
+        break;
+      } catch {
+        continue;
+      }
+    }
+    if (exerciseBtn) {
+      await exerciseBtn.scrollIntoViewIfNeeded().catch(() => {});
+      await page.waitForTimeout(800);
+      const [download3] = await Promise.all([
+        page.waitForEvent("download", { timeout: 60000 }),
+        exerciseBtn.click({ timeout: 15000, force: true }),
+      ]);
+      const p3 = await download3.path();
+      if (p3 && fs.existsSync(p3)) {
+        fs.copyFileSync(p3, path.join(DATA_DIR, "exercises.csv"));
+        console.log("Saved exercises.csv");
+      }
+    } else {
+      console.log("Export Exercises button not found; skipping exercises.");
+    }
   } catch (err) {
     console.error("Sync error:", err.message);
     process.exit(1);
@@ -176,14 +214,23 @@ async function main() {
   // Merge: write to DB if DATABASE_URL set (dynamic), else to JSON files (legacy)
   const useDb = !!process.env.DATABASE_URL;
   if (useDb) {
-    const { parseDailyCsv, parseServingsCsv, mergeDaily, mergeServings } = require("./merge-cronometer-data.js");
+    const {
+      parseDailyCsv,
+      parseServingsCsv,
+      parseExercisesCsv,
+      mergeDaily,
+      mergeServings,
+      mergeExercises,
+    } = require("./merge-cronometer-data.js");
     const { getCronometerFromDb, writeCronometerToDb } = require("./cronometer-db-write.js");
     const incomingDaily = parseDailyCsv(path.join(DATA_DIR, "dailysummary.csv"));
     const incomingServings = parseServingsCsv(path.join(DATA_DIR, "servings.csv"));
+    const incomingExercises = parseExercisesCsv(path.join(DATA_DIR, "exercises.csv"));
     const existing = await getCronometerFromDb();
     const mergedDaily = mergeDaily(existing.mergedDaily, incomingDaily);
     const mergedServings = mergeServings(existing.mergedServings, incomingServings);
-    await writeCronometerToDb(mergedDaily, mergedServings);
+    const mergedExercises = mergeExercises(existing.mergedExercises || [], incomingExercises);
+    await writeCronometerToDb(mergedDaily, mergedServings, mergedExercises);
   } else {
     const { run } = require("./merge-cronometer-data.js");
     run();
