@@ -15,6 +15,8 @@ const dailyPath = path.join(dataDir, "cronometer-daily.json");
 const servingsPath = path.join(dataDir, "cronometer-servings.json");
 const metaPath = path.join(dataDir, "cronometer-meta.json");
 
+const DATA_CUTOFF = "2026-03-03";
+
 function num(val) {
   if (val == null || val === "") return 0;
   const n = parseFloat(String(val).replace(/,/g, ""));
@@ -39,7 +41,7 @@ function parseDailyCsv(csvPath) {
       fiberG: num(r["Fiber (g)"]),
       sodiumMg: num(r["Sodium (mg)"]),
     }))
-    .filter((r) => r.date);
+    .filter((r) => r.date && r.date >= DATA_CUTOFF);
 }
 
 function parseServingsCsv(csvPath) {
@@ -61,7 +63,7 @@ function parseServingsCsv(csvPath) {
       energyKcal: num(r["Energy (kcal)"]),
       category: r["Category"] ?? "",
     }))
-    .filter((r) => (r.foodName || r.energyKcal > 0) && YYYYMMDD.test(r.day));
+    .filter((r) => (r.foodName || r.energyKcal > 0) && YYYYMMDD.test(r.day) && r.day >= DATA_CUTOFF);
 }
 
 /** Parse exercises CSV; aggregate by date. Returns [{ date, minutes, caloriesBurned }]. */
@@ -76,7 +78,7 @@ function parseExercisesCsv(csvPath) {
   const byDate = new Map();
   for (const r of rows) {
     const date = r["Day"] ?? r["Date"] ?? r["date"] ?? "";
-    if (!date) continue;
+    if (!date || date < DATA_CUTOFF) continue;
     const minutes = num(r["Duration (min)"] ?? r["Duration"] ?? r["Minutes"] ?? r["minutes"] ?? 0);
     const kcal = num(r["Energy (kcal)"] ?? r["Calories"] ?? r["calories"] ?? 0);
     const existing = byDate.get(date) ?? { date, minutes: 0, caloriesBurned: 0 };

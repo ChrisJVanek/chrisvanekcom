@@ -7,21 +7,18 @@ import {
   type CronometerServing,
 } from "@/lib/cronometer";
 import { getHealthData } from "@/lib/health";
-import { DailySummaryCard } from "@/components/DailySummaryCard";
 import { DexaSection } from "@/components/DexaSection";
 import { BloodTestSection } from "@/components/BloodTestSection";
-import { ExpandableFoodLog } from "@/components/ExpandableFoodLog";
+import { NutritionTable } from "@/components/NutritionTable";
 import { formatDateInSiteTz, formatDateTimeInSiteTz } from "@/lib/site";
 
 const VALID_DAY = /^\d{4}-\d{2}-\d{2}$/;
 
-function servingsByDay(servings: CronometerServing[]): Map<string, CronometerServing[]> {
-  const byDay = new Map<string, CronometerServing[]>();
+function servingsByDay(servings: CronometerServing[]): Record<string, CronometerServing[]> {
+  const byDay: Record<string, CronometerServing[]> = {};
   for (const s of servings) {
     if (!s.day || !VALID_DAY.test(s.day)) continue;
-    const list = byDay.get(s.day) ?? [];
-    list.push(s);
-    byDay.set(s.day, list);
+    (byDay[s.day] ??= []).push(s);
   }
   return byDay;
 }
@@ -205,40 +202,20 @@ export default async function HealthPage() {
       </section>
 
       {hasCronometer && (
-        <>
-          <section className="mb-12" id="daily-summary">
-            <p className="text-sm text-mute mb-6">
-              Daily summary is updated daily from exported logs. Click a day&apos;s kcal to open the food log in an overlay.
+        <section className="mb-12" id="daily-summary">
+          <h2 className="font-display text-sm font-medium uppercase tracking-widest text-mute mb-2">
+            Daily nutrition
+          </h2>
+          <p className="text-sm text-mute mb-4">
+            From Cronometer. Click a row to expand the food log.
+          </p>
+          <NutritionTable days={cronometerDays} servingsByDay={servingsByDayMap} />
+          {cronometerUpdatedAt && (
+            <p className="text-xs text-mute mt-3">
+              Last synced: {formatUpdatedAt(cronometerUpdatedAt)}
             </p>
-            <div className="grid gap-8 lg:grid-cols-2 lg:gap-10">
-              <div>
-                <h2 className="font-display text-sm font-medium uppercase tracking-widest text-mute mb-4">
-                  Daily summary
-                </h2>
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
-                  {cronometerDays.map((day) => (
-                    <DailySummaryCard
-                      key={day.date}
-                      day={day}
-                      servings={servingsByDayMap.get(day.date) ?? []}
-                    />
-                  ))}
-                </div>
-              </div>
-              <div>
-                <h2 className="font-display text-sm font-medium uppercase tracking-widest text-mute mb-4">
-                  Food log
-                </h2>
-                <ExpandableFoodLog servings={validServings} />
-              </div>
-            </div>
-            {cronometerUpdatedAt && (
-              <p className="text-xs text-mute mt-4">
-                Last updated: {formatUpdatedAt(cronometerUpdatedAt)}
-              </p>
-            )}
-          </section>
-        </>
+          )}
+        </section>
       )}
 
       {hasActivitySection && (
