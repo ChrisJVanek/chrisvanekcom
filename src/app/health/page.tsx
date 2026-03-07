@@ -35,76 +35,44 @@ function formatUpdatedAt(iso: string | null | undefined): string {
   return formatDateTimeInSiteTz(iso);
 }
 
-/** Rows for calories (Cronometer), activity (Apple Health + Cronometer exercises), steps, calories burned. */
-function getCaloriesAndActivityRows(
-  cronometerDays: { date: string; energyKcal: number }[],
+function getActivityRows(
   activityEntries: { date: string; minutes: number }[],
   cronometerActivity: Array<{ date: string; minutes: number; caloriesBurned?: number }>,
   stepsEntries: Array<{ date: string; steps: number }>,
   caloriesBurnedEntries: Array<{ date: string; kcal: number }>
 ): Array<{
   date: string;
-  consumed: number | null;
   activityMinutes: number | null;
   steps: number | null;
   caloriesBurned: number | null;
 }> {
   const byDate = new Map<
     string,
-    { consumed: number | null; activityMinutes: number | null; steps: number | null; caloriesBurned: number | null }
+    { activityMinutes: number | null; steps: number | null; caloriesBurned: number | null }
   >();
   for (const a of activityEntries) {
-    byDate.set(a.date, { consumed: null, activityMinutes: a.minutes, steps: null, caloriesBurned: null });
+    byDate.set(a.date, { activityMinutes: a.minutes, steps: null, caloriesBurned: null });
   }
   for (const c of cronometerActivity) {
-    const existing = byDate.get(c.date) ?? {
-      consumed: null,
-      activityMinutes: null,
-      steps: null,
-      caloriesBurned: null,
-    };
-    const prevMin = existing.activityMinutes ?? 0;
-    const prevBurned = existing.caloriesBurned ?? 0;
+    const existing = byDate.get(c.date) ?? { activityMinutes: null, steps: null, caloriesBurned: null };
     byDate.set(c.date, {
       ...existing,
-      activityMinutes: prevMin + c.minutes,
-      caloriesBurned: prevBurned + (c.caloriesBurned ?? 0),
+      activityMinutes: (existing.activityMinutes ?? 0) + c.minutes,
+      caloriesBurned: (existing.caloriesBurned ?? 0) + (c.caloriesBurned ?? 0),
     });
   }
   for (const s of stepsEntries) {
-    const existing = byDate.get(s.date) ?? {
-      consumed: null,
-      activityMinutes: null,
-      steps: null,
-      caloriesBurned: null,
-    };
+    const existing = byDate.get(s.date) ?? { activityMinutes: null, steps: null, caloriesBurned: null };
     byDate.set(s.date, { ...existing, steps: s.steps });
   }
   for (const b of caloriesBurnedEntries) {
-    const existing = byDate.get(b.date) ?? {
-      consumed: null,
-      activityMinutes: null,
-      steps: null,
-      caloriesBurned: null,
-    };
-    const prev = existing.caloriesBurned ?? 0;
-    byDate.set(b.date, { ...existing, caloriesBurned: prev + b.kcal });
-  }
-  for (const d of cronometerDays) {
-    const existing = byDate.get(d.date) ?? {
-      consumed: null,
-      activityMinutes: null,
-      steps: null,
-      caloriesBurned: null,
-    };
-    byDate.set(d.date, { ...existing, consumed: d.energyKcal });
+    const existing = byDate.get(b.date) ?? { activityMinutes: null, steps: null, caloriesBurned: null };
+    byDate.set(b.date, { ...existing, caloriesBurned: (existing.caloriesBurned ?? 0) + b.kcal });
   }
   return Array.from(byDate.entries())
     .map(([date, rest]) => ({ date, ...rest }))
     .sort((a, b) => (b.date > a.date ? 1 : -1));
 }
-
-const CALORIE_GOAL = 1500;
 
 export default async function HealthPage() {
   const healthData = getHealthData();
@@ -122,14 +90,13 @@ export default async function HealthPage() {
   const validServings = cronometerServings.filter((s) => s.day && VALID_DAY.test(s.day));
   const hasCronometer = cronometerDays.length > 0 || validServings.length > 0;
   const servingsByDayMap = servingsByDay(validServings);
-  const caloriesActivityRows = getCaloriesAndActivityRows(
-    cronometerDays,
+  const activityRows = getActivityRows(
     healthData.activity,
     cronometerActivity,
     healthData.steps ?? [],
     healthData.caloriesBurned ?? []
   );
-  const hasActivitySection = caloriesActivityRows.length > 0;
+  const hasActivitySection = activityRows.length > 0;
 
   return (
     <main className="max-w-2xl mx-auto px-5 py-16 md:py-24">
@@ -220,57 +187,41 @@ export default async function HealthPage() {
 
       {hasActivitySection && (
         <section className="mb-10">
-          <h2 className="font-display text-sm font-medium uppercase tracking-widest text-mute mb-4">
-            Calories & activity
+          <h2 className="font-display text-sm font-medium uppercase tracking-widest text-mute mb-2">
+            Activity
           </h2>
           <p className="text-sm text-mute mb-4">
-            Calories from Cronometer; exercise minutes from Cronometer export and Apple Health; steps and calories burned from Apple Health export.
+            Exercise minutes, steps, and calories burned from Apple Health auto export and Cronometer.
           </p>
           <div className="overflow-x-auto rounded-xl border border-black/10 dark:border-white/10">
             <table className="w-full text-left text-sm">
               <thead>
-                <tr className="border-b border-black/10 dark:border-white/10">
-                  <th className="font-display font-medium text-ink py-3 px-4">Date</th>
-                  <th className="font-display font-medium text-ink py-3 px-4">Calories</th>
-                  <th className="font-display font-medium text-ink py-3 px-4">Activity</th>
-                  <th className="font-display font-medium text-ink py-3 px-4">Steps</th>
-                  <th className="font-display font-medium text-ink py-3 px-4">Burned</th>
-                  <th className="font-display font-medium text-ink py-3 px-4">vs goal</th>
+                <tr className="border-b border-black/10 dark:border-white/10 bg-black/[0.03] dark:bg-white/[0.03]">
+                  <th className="font-display font-medium text-ink py-2.5 px-4">Date</th>
+                  <th className="font-display font-medium text-ink py-2.5 px-4 text-right">Exercise</th>
+                  <th className="font-display font-medium text-ink py-2.5 px-4 text-right">Steps</th>
+                  <th className="font-display font-medium text-ink py-2.5 px-4 text-right">Burned</th>
                 </tr>
               </thead>
               <tbody>
-                {caloriesActivityRows.map((row) => (
+                {activityRows.map((row) => (
                   <tr
                     key={row.date}
                     className="border-b border-black/5 dark:border-white/5 last:border-0"
                   >
-                    <td className="py-3 px-4 text-ink">{formatDateInSiteTz(row.date, "short")}</td>
-                    <td className="py-3 px-4 text-ink">
-                      {row.consumed != null ? Math.round(row.consumed) : "—"}
-                    </td>
-                    <td className="py-3 px-4 text-ink tabular-nums">
+                    <td className="py-2.5 px-4 text-ink">{formatDateInSiteTz(row.date, "short")}</td>
+                    <td className="py-2.5 px-4 text-ink tabular-nums text-right">
                       {row.activityMinutes != null
                         ? row.activityMinutes >= 60
-                          ? `${Math.floor(row.activityMinutes / 60)}h ${row.activityMinutes % 60}m`
-                          : `${row.activityMinutes} min`
+                          ? `${Math.floor(row.activityMinutes / 60)}h ${Math.round(row.activityMinutes % 60)}m`
+                          : `${Math.round(row.activityMinutes)} min`
                         : "—"}
                     </td>
-                    <td className="py-3 px-4 text-ink tabular-nums">
+                    <td className="py-2.5 px-4 text-ink tabular-nums text-right">
                       {row.steps != null ? row.steps.toLocaleString() : "—"}
                     </td>
-                    <td className="py-3 px-4 text-ink tabular-nums">
-                      {row.caloriesBurned != null ? Math.round(row.caloriesBurned) : "—"}
-                    </td>
-                    <td className="py-3 px-4">
-                      {row.consumed != null ? (
-                        row.consumed <= CALORIE_GOAL ? (
-                          <span className="text-green-600 dark:text-green-400">under</span>
-                        ) : (
-                          <span className="text-amber-600 dark:text-amber-400">over</span>
-                        )
-                      ) : (
-                        "—"
-                      )}
+                    <td className="py-2.5 px-4 text-ink tabular-nums text-right">
+                      {row.caloriesBurned != null ? `${Math.round(row.caloriesBurned)} kcal` : "—"}
                     </td>
                   </tr>
                 ))}
@@ -282,8 +233,7 @@ export default async function HealthPage() {
               (healthData.steps?.length ?? 0) > 0 ||
               (healthData.caloriesBurned?.length ?? 0) > 0) && (
               <p className="text-xs text-mute mt-2">
-                Activity / steps / calories burned last updated:{" "}
-                {formatUpdatedAt(healthData.updatedAt)}
+                Last updated: {formatUpdatedAt(healthData.updatedAt)}
               </p>
             )}
         </section>
