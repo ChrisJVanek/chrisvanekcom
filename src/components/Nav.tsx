@@ -9,6 +9,9 @@ export function Nav() {
       <Link href="/#projects" className="text-mute hover:text-accent transition-colors">
         Projects
       </Link>
+      <Link href="/#blog" className="text-mute hover:text-accent transition-colors">
+        Blog
+      </Link>
       <Link href="/health" className="text-mute hover:text-accent transition-colors">
         Health
       </Link>
