@@ -30,7 +30,7 @@ export default async function BlogPostPage({
   return (
     <main className="max-w-2xl mx-auto px-5 py-16 md:py-24">
       <Link
-        href="/#blog"
+        href="/blog"
         className="text-sm text-mute hover:text-accent transition-colors mb-8 inline-block"
       >
         ← Back to blog
