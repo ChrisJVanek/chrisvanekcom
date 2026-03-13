@@ -35,12 +35,16 @@ async function main() {
   }
 
   const headed = process.argv.includes("--headed");
+  const isCI = !!process.env.CI;
   if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
 
-  const browser = await chromium.launch({
-    headless: !headed,
-    channel: "chrome",
-  }).catch(() => chromium.launch({ headless: !headed }));
+  // In CI (e.g. GitHub Actions) only Chromium is installed, not Chrome
+  const browser = isCI
+    ? await chromium.launch({ headless: true })
+    : await chromium.launch({
+        headless: !headed,
+        channel: "chrome",
+      }).catch(() => chromium.launch({ headless: !headed }));
 
   const context = await browser.newContext({
     acceptDownloads: true,

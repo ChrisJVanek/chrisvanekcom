@@ -15,7 +15,7 @@ on:
 
 jobs:
   sync:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
 
@@ -29,8 +29,17 @@ jobs:
       - name: Generate Prisma client
         run: npx prisma generate
 
-      - name: Install Playwright Chromium
-        run: npx playwright install chromium
+      - name: Check required secrets
+        run: |
+          if [ -z "${{ secrets.DATABASE_URL }}" ]; then
+            echo "::error::DATABASE_URL secret is not set. Add it in repo Settings → Secrets and variables → Actions so the sync writes to your database."
+            exit 1
+          fi
+
+      - name: Install Playwright Chromium and system deps
+        run: |
+          npx playwright install-deps chromium
+          npx playwright install chromium
 
       - name: Run Cronometer sync (writes to DB)
         env:
